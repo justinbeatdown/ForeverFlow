@@ -53,6 +53,10 @@ function FF:InitDB()
     c.lifetime.materials=numberOr(c.lifetime.materials,0)
     c.lifetime.earned=numberOr(c.lifetime.earned,0)
     c.lifetime.sessions=numberOr(c.lifetime.sessions,0)
+    if c.discoverView==nil then c.discoverView=false end
+    if type(c.savedDiscoveries)~="table" then c.savedDiscoveries={} end
+    if type(c.skippedDiscoveries)~="table" then c.skippedDiscoveries={} end
+    if type(c.seenDiscoveries)~="table" then c.seenDiscoveries={} end
     if c.compact==nil then c.compact=false end -- migration from v0.2
 end
 
@@ -352,6 +356,12 @@ SlashCmdList.FOREVERFLOW=function(input)
     elseif cmd=="priority" then FF:SetPriority(arg)
     elseif cmd=="auto" or cmd=="unpin" then FF:UnpinCurrentQuest()
     elseif cmd=="pin" then FF:PinCurrentQuest()
+    elseif cmd=="discover" then
+        FF.char.discoverView=true
+        FF.window:Show();FF.char.visible=true;FF:ShowTab("leveling")
+        if FF.snapshot then FF:FindDiscoveries(FF.snapshot,true) end
+        FF:Refresh()
+    elseif cmd=="discoverreset" then FF:ResetSkippedDiscoveries()
     elseif cmd=="stats" or cmd=="session" then FF:SessionSummary()
     elseif cmd=="pace" then
         FF.char.showPace=not FF.char.showPace
@@ -393,6 +403,7 @@ SlashCmdList.FOREVERFLOW=function(input)
         FF:Message("/flow priority level|gold|balanced  |  /flow follow on|off  |  /flow focus")
         FF:Message("/flow map  |  /flow track  |  /flow pin  |  /flow unpin  |  /flow next")
         FF:Message("/flow stats  |  /flow pace (toggle XP estimate)  |  /flow hud tiny|normal")
+        FF:Message("/flow discover  |  /flow discoverreset (revisit skipped quests)")
         FF:Message("/flow leveling|skills|character|settings  |  /flow where  |  /flow why  |  /flow goldstatus  |  /flow status  |  /flow resetpos")
     else FF:Message("Unknown command. Type /flow help.") end
 end
@@ -402,7 +413,8 @@ for _,event in ipairs({"ADDON_LOADED","PLAYER_LOGIN"}) do events:RegisterEvent(e
 local optional={"PLAYER_LEVEL_UP","PLAYER_XP_UPDATE","QUEST_LOG_UPDATE","QUEST_ACCEPTED",
  "QUEST_REMOVED","QUEST_TURNED_IN","BAG_UPDATE_DELAYED","PLAYER_MONEY",
  "UPDATE_INVENTORY_DURABILITY","PLAYER_EQUIPMENT_CHANGED","SKILL_LINES_CHANGED",
- "ZONE_CHANGED","ZONE_CHANGED_NEW_AREA","PLAYER_REGEN_ENABLED","SPELLS_CHANGED"}
+ "ZONE_CHANGED","ZONE_CHANGED_NEW_AREA","PLAYER_REGEN_ENABLED","SPELLS_CHANGED",
+ "GOSSIP_SHOW","QUEST_GREETING"}
 FF.skippedEvents={}
 for _,event in ipairs(optional) do
     if not pcall(events.RegisterEvent,events,event) then
@@ -425,6 +437,9 @@ events:SetScript("OnEvent",function(_,event,arg1)
         return
     end
     if not FF.char or not FF.session then return end
+    if event=="GOSSIP_SHOW" or event=="QUEST_GREETING" then
+        if FF.RememberNearbyQuests then FF:RememberNearbyQuests() end
+    end
     if event=="QUEST_TURNED_IN" then
         FF.session.questTurns=FF.session.questTurns+1
         FF.char.lifetime.quests=FF.char.lifetime.quests+1

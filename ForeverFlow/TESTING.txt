@@ -1,3 +1,11 @@
+v0.5.5 Beta 2 dashboard actions QA
+[ ] Leveling highlights active quest; selected/pinned states change correctly after turn-in.
+[ ] Gold OPEN BAGS toggles bags when supported; PROFESSION PLAN opens Skills.
+[ ] Skills gathering target +10 persists between sessions and reflects inventory gains.
+[ ] OPEN PROFESSIONS uses the native UI or instructs the player if unavailable.
+[ ] No clipping in gold advice, skills panel, and quest list.
+[ ] Live Guide and automatic next quest handoff still work.
+
 v0.5.5 test checklist (beta)
 [ ] New leveling tab pace reads "calculating" in first 5 minutes.
 [ ] After 5 min and >=100 XP, XP/hour and next-level ETA appear.
@@ -84,3 +92,14 @@ Send error text and a screenshot of the recommended quest + default tracker.
 
 Note: quest focus and automatic waypoints are built on the Forever client API.
 If the game refuses them (or supplies no coordinates), the addon will not invent a route.
+
+DISCOVER QUESTS / 0.5.5 Beta 3 live validation
+[ ] Leveling > Discover Quests switches views and shows new suggestions or honest empty message.
+[ ] A suggested quest is NOT already in your log or completed (where client can report completion).
+[ ] Visiting an eligible quest giver then reopening Discover can remember what was offered.
+[ ] SAVE persists through /reload; UNSAVE and SKIP work; RESET SKIPPED restores items.
+[ ] MAP opens appropriate zone, with no invented exact quest giver destination or overwritten pin.
+[ ] An unaccepted recommendation never replaces the current auto-follow quest.
+[ ] After turn-in, normal next-quest auto-selection still works.
+[ ] /flow discover opens the new view without Lua errors.
+[ ] Recheck at different levels, factions and zones; client APIs may expose no candidates.

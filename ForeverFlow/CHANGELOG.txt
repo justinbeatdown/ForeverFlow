@@ -1,3 +1,11 @@
+ForeverFlow 0.5.5 Beta 2 — Actionable dashboard improvements (test build)
+- Leveling page marks the active quest, highlights selected/pinned quests, and displays its current objective state.
+- Gold page now has OPEN BAGS and PROFESSION PLAN actions, with live bag-space context.
+- Skills page has a persistent gathering goal that can be raised in +10 increments and an OPEN PROFESSIONS control.
+- Gathering totals are inventory-gain estimates, not guaranteed harvesting counts.
+- No change to automatic quest selection/focus and no gameplay automation.
+- Gameplay testing needed before publishing to CurseForge.
+
 ForeverFlow 0.5.5 (Leveling pace + quest controls)
 - Added session XP/hour and an estimated time to the next level using earned XP and
   current level progress. Estimates appear after at least 5 minutes and 100 XP;
@@ -66,3 +74,14 @@ ForeverFlow v0.5.1 — Smart Follow + Ribbon HUD
 - Compact 302x89 Live Guide with fewer controls always on screen; expanded mode offers details and manual buttons.
 - Original approved ForeverFlow brand crest in the minimap and Live Guide.
 - Preserves dashboard visual theme, character data and settings.
+
+ForeverFlow 0.5.5 Beta 3 - Discover Quests (test build)
+- Leveling tab now switches between MY QUESTS and DISCOVER QUESTS, without changing the active auto-follow target.
+- Candidate quests not yet in the log are collected from client quest-line/map-start APIs where available.
+- Remember previously seen eligible quest-giver options during gossip interactions; records are local to the character.
+- Display candidate source, level requirements when reported, and an honest eligibility warning.
+- Save/un-save possible quests for later, skip unwanted suggestions, or reset skipped quests.
+- MAP opens the general zone map; no fabricated NPC pickup pins or silent waypoint overrides.
+- New commands: /flow discover and /flow discoverreset.
+- External quest databases excluded pending licensing review and in-client validation.
+- Game API coverage is client-dependent; quest discovery is best-effort, not a complete route database.

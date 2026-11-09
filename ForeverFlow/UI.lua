@@ -2,6 +2,7 @@
 local _,FF=...
 local C=FF.colors
 local W,H=652,720
+-- UX refresh: pages need stateful actions, not only read-only snapshots.
 local TAB_NAMES={"today","leveling","gold","skills","character","settings"}
 local TAB_LABELS={"TODAY","LEVELING","GOLD","SKILLS","CHARACTER","SETTINGS"}
 
@@ -141,7 +142,7 @@ function FF:MakeLeveling(p)
     v.description=label(intro,"",12,53,596,27,11,C.muted)
     v.pace=label(intro,"",12,82,596,19,11,C.gold)
     local list=panel(p,14,127,624,305)
-    heading(list,"QUEST SHORTLIST  /  CHOOSE A ROUTE")
+    v.listHeading=heading(list,"QUEST SHORTLIST  /  CHOOSE A ROUTE")
     v.rows={}
     for i=1,5 do
         local y=32+(i-1)*53
@@ -151,9 +152,39 @@ function FF:MakeLeveling(p)
         r.pin=button(list,"PIN",507,y+4,105,31,function() if r.id then FF:ChooseQuest(r.id) end end)
         v.rows[i]=r
     end
+    -- Separate mode: unaccepted quests are not part of auto-follow or the quest log.
+    v.discoverRows={}
+    for i=1,3 do
+        local y=34+(i-1)*85
+        local r={}
+        r.name=label(list,"",12,y,585,20,12,C.gold)
+        r.reason=label(list,"",12,y+21,375,52,10,C.muted)
+        r.map=button(list,"MAP",392,y+33,66,27,function() FF:ShowDiscoveryOnMap(r.quest) end)
+        r.save=button(list,"SAVE",467,y+33,68,27,function()
+            if r.quest then FF:ToggleSavedDiscovery(r.quest.id) end
+        end)
+        r.skip=button(list,"SKIP",544,y+33,67,27,function()
+            if r.quest then FF:SkipDiscovery(r.quest.id) end
+        end)
+        v.discoverRows[i]=r
+    end
+    v.empty=label(list,"",12,44,590,115,12,C.muted)
     local foot=panel(p,14,443,624,56)
-    v.auto=button(foot,"AUTO QUEST SELECTION",12,11,294,33,function() FF:UnpinCurrentQuest() end)
-    button(foot,"QUEST MAP / WAYPOINT",318,11,294,33,function() FF:MapAction() end)
+    v.myQuests=button(foot,"MY QUESTS",12,11,187,33,function()
+        FF.char.discoverView=false;FF:Refresh()
+    end)
+    v.discover=button(foot,"DISCOVER QUESTS",208,11,195,33,function()
+        FF.char.discoverView=true
+        if FF.snapshot then FF:FindDiscoveries(FF.snapshot,true) end
+        FF:Refresh()
+    end)
+    v.action=button(foot,"AUTO / UNPIN",412,11,200,33,function()
+        if FF.char.discoverView then
+            FF:ResetSkippedDiscoveries()
+        else
+            FF:UnpinCurrentQuest()
+        end
+    end)
     return v
 end
 function FF:MakeGold(p)
@@ -170,7 +201,13 @@ function FF:MakeGold(p)
     local advice=panel(p,14,251,624,116)
     heading(advice,"YOUR BEST CURRENT GOLD OPPORTUNITY")
     v.goldCategory=label(advice,"",12,34,594,20,12,C.gold)
-    v.advice=label(advice,"",12,58,594,50,12,C.white)
+    v.advice=label(advice,"",12,56,594,27,11,C.white)
+    v.bags=button(advice,"OPEN BAGS",12,84,287,26,function()
+        if type(ToggleAllBags)=="function" then ToggleAllBags()
+        elseif type(OpenAllBags)=="function" then OpenAllBags()
+        else FF:Message("Open your bags with the default bag shortcut (B).") end
+    end)
+    v.skills=button(advice,"PROFESSION PLAN",313,84,299,26,function() FF:ShowTab("skills") end)
     local controls=panel(p,14,379,624,120)
     heading(controls,"GOLD TARGET: AUTOMATIC BY DEFAULT")
     v.goalFill=meter(controls,12,35,600,9)
@@ -208,8 +245,17 @@ function FF:MakeSkills(p)
     v.materialsMore=label(acquisition,"",12,73,590,22,11,C.muted)
     local tip=panel(p,14,390,624,109)
     heading(tip,"NEXT SKILL STEP")
-    v.skill=label(tip,"",12,35,590,43,13,C.white)
-    v.tip=label(tip,"Counts herbs, ore, and leather added to bags. Bank transfers may also count as gains.",12,80,590,25,10,C.muted)
+    v.skill=label(tip,"",12,31,596,25,12,C.white)
+    v.gather=label(tip,"",12,54,596,17,10,C.gold)
+    v.goal=button(tip,"GATHER TARGET +10",12,76,296,28,function()
+        FF.char.gatherTarget=math.min(500,(FF.char.gatherTarget or 20)+10)
+        FF:Refresh()
+    end)
+    v.professions=button(tip,"OPEN PROFESSIONS",318,76,294,28,function()
+        if type(ToggleProfessions)=="function" then ToggleProfessions()
+        elseif type(ToggleSpellBook)=="function" then ToggleSpellBook("professions")
+        else FF:Message("Open your Professions panel from the game UI (default K).") end
+    end)
     return v
 end
 function FF:MakeCharacter(p)
@@ -522,24 +568,68 @@ function FF:UpdateUI()
     v.progress:SetText("THIS SESSION: "..elapsedText(s.elapsed).." | XP +"..math.floor(s.session.xpEarned or 0).." | Quests "..s.session.questTurns.." | Materials "..s.session.materials)
 
     v=self.views.leveling
+    local discoverMode=self.char.discoverView==true
+    switchHighlight(v.myQuests,not discoverMode)
+    switchHighlight(v.discover,discoverMode)
+    v.action.text:SetText(discoverMode and "RESET SKIPPED" or
+        (self.char.manualQuestID>0 and "UNPIN / RESUME AUTO" or "AUTO / UNPIN"))
+    v.listHeading:SetText(discoverMode and "DISCOVER QUESTS  /  NOT IN YOUR LOG" or "QUEST SHORTLIST  /  CHOOSE A ROUTE")
+    if discoverMode then
+        local suggested,detail=self:FindDiscoveries(s)
+        v.summary:SetText("DISCOVERY  |  "..#suggested.." suggestions  |  level "..s.level.."  |  "..shorten(s.zone,30))
+        v.description:SetText(shorten(detail,105))
+        v.pace:SetText("CLIENT-OBSERVED QUESTS  |  Eligibility and NPC pickup are not guaranteed")
+        for i=1,5 do
+            local r=v.rows[i];r.name:Hide();r.objective:Hide();r.pin:Hide()
+        end
+        local count=math.min(3,#suggested)
+        v.empty:SetShown(count==0)
+        v.empty:SetText("No new quest starts detected in this area yet.\n\nOpen a nearby quest giver, then press DISCOVER QUESTS again. Or move to another zone.\n\nOnly client-reported or previously observed quests appear; no invented quests or pickup locations.")
+        for i=1,3 do
+            local r=v.discoverRows[i]; local q=suggested[i]
+            r.quest=q
+            for _,part in ipairs({r.name,r.reason,r.map,r.save,r.skip}) do part:SetShown(q~=nil) end
+            if q then
+                r.name:SetText(shorten(i..". "..q.title.."  ["..q.confidence.."]",85))
+                r.reason:SetText(shorten(q.why,125))
+                r.save.text:SetText(q.saved and "UNSAVE" or "SAVE")
+            end
+        end
+    else
+        v.empty:Hide()
+        for _,r in ipairs(v.discoverRows) do
+            r.quest=nil
+            for _,part in ipairs({r.name,r.reason,r.map,r.save,r.skip}) do part:Hide() end
+        end
+        for i=1,5 do
+            v.rows[i].name:Show();v.rows[i].objective:Show()
+        end
+    end
+    if not discoverMode then
     v.summary:SetText((s.questCount or "?").." quests  |  "..s.questComplete.." ready  |  "..(self.char.manualQuestID>0 and "manual quest pinned" or "auto selected"))
-    v.description:SetText("Live quest-log suggestions. Map hints aren't verified mob locations. /flow why explains selection; PIN holds a quest until unpinned.")
+    local active=plan.quest
+    v.description:SetText(active and
+        ("ACTIVE: "..shorten(active.title,40).."  |  "..(self.char.manualQuestID>0 and "PINNED BY YOU" or "AUTO PICK").."  |  "..(active.done and "READY TO TURN IN" or "OBJECTIVES ACTIVE"))
+        or "No active quest. Pick up quests and open your quest log.")
     local pace=self:LevelingPace(s)
     v.pace:SetText(self.char.showPace and ("SESSION PACE: "..(pace.reliable and (pace.rate.." XP/hr") or "calculating after 5 minutes").."  |  NEXT LEVEL: "..pace.eta) or "SESSION PACE: hidden (/flow pace)")
-    v.auto.text:SetText(self.char.manualQuestID>0 and "UNPIN / RESUME AUTO" or "AUTO QUEST SELECTION")
     for i=1,5 do
         local quest=s.quests[i];local row=v.rows[i]
         if quest then
             row.id=quest.id
-            row.name:SetText(i..". "..shorten(quest.title,64)..(quest.done and "  |cff77dd98[READY]|r" or ""))
+            local selected=active and active.id==quest.id
+            row.name:SetText((selected and "|cffffca5e> " or "|cffbb9d6d  ")..i..". "..shorten(quest.title,51).."|r"..(quest.done and "  |cff77dd98[TURN IN]|r" or ""))
+            row.pin.ffActive=selected or quest.id==self.char.manualQuestID
+            switchHighlight(row.pin,row.pin.ffActive)
             row.objective:SetText(shorten(quest.firstObjective or (quest.done and "Ready for quest turn-in" or "Open the quest log for objectives"),95))
             row.pin:SetShown(type(quest.id)=="number")
-            row.pin.text:SetText(quest.id==self.char.manualQuestID and "PINNED" or "PIN")
+            row.pin.text:SetText(quest.id==self.char.manualQuestID and "PINNED" or (selected and "SELECTED" or "PIN QUEST"))
         else
             row.id=nil;row.name:SetText(i==1 and "No visible quests detected. Pick up quests or open collapsed log headers." or "")
             row.objective:SetText("");row.pin:Hide()
         end
     end
+    end -- quest-log view
     v=self.views.gold
     v.money:SetText(self:MoneyText(s.money))
     local target=0
@@ -556,8 +646,8 @@ function FF:UpdateUI()
     if s.elapsed>=180 then
         v.goldPerHour:SetText("Gained per hour (session): "..self:MoneyText(s.session.earned*3600/s.elapsed)..". Not a guaranteed farming rate.")
     else v.goldPerHour:SetText("Hourly rate appears after 3 minutes; short sessions are misleading.") end
-    v.goldCategory:SetText(s.goldCategory)
-    v.advice:SetText(s.goldTip)
+    v.goldCategory:SetText(s.goldCategory.."  |  "..(s.bagFree and (s.bagFree.." bag slots free") or "bags unavailable"))
+    v.advice:SetText(shorten(s.goldTip,150))
     v.goalFill(target>0 and s.money/target or 0)
     v.goalDetail:SetText(target>s.money and (self:MoneyText(target-s.money).." until next target") or "Gold target reached!")
     switchHighlight(v.auto,self.char.goldTarget==0)
@@ -576,7 +666,12 @@ function FF:UpdateUI()
     v.secondary:SetText(#secondary>0 and table.concat(secondary,"   |   ") or "No secondary professions detected")
     v.materials:SetText((s.session.materials or 0).." known materials acquired")
     v.materialsMore:SetText("Herbs "..(s.session.herb or 0).."  |  Ore/stone "..(s.session.ore or 0).."  |  Leather "..(s.session.leather or 0))
-    v.skill:SetText(s.skillTip)
+    local got=s.session.materials or 0
+    local goal=self.char.gatherTarget or 20
+    local remaining=math.max(0,goal-got)
+    v.skill:SetText(shorten(s.skillTip,118))
+    v.gather:SetText("GATHERING GOAL: "..got.." / "..goal.."  |  "..(remaining>0 and (remaining.." materials left") or "GOAL REACHED").."  (bag gains, not proven harvests)")
+    v.goal.text:SetText(remaining>0 and "RAISE GOAL +10" or "SET NEXT GOAL +10")
 
     v=self.views.character
     v.name:SetText(s.className.."  |  Level "..s.level)

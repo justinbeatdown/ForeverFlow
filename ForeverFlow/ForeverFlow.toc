@@ -9,4 +9,5 @@
 
 Core.lua
 Data.lua
+Discovery.lua
 UI.lua

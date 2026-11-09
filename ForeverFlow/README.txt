@@ -29,3 +29,13 @@ Quest-map coordinates are client-provided hints; not guaranteed objective locati
 
 0.5.5 commands: /flow stats, /flow pin, /flow unpin, /flow pace
 Leveling pace is an estimate based on current session XP and appears after a reliable sample.
+
+Discover Quests beta: Leveling > DISCOVER QUESTS or /flow discover shows eligible-looking
+quest-line/map-start options reported by your current WoW: Forever client and
+quest-giver options previously seen during gossip. These are hints, NOT confirmed
+availability, optimized routing, or verified NPC pickup coordinates. Save, skip,
+reset skips (/flow discoverreset), or open the general zone map. This feature
+never automatically accepts quests, pins unverified NPCs or overrides auto-follow.
+Forever-compatible external quest databases are not bundled due to licensing and
+client-validation requirements. If the client exposes no quest lines/starts,
+visit quest-givers or travel to other zones to discover more.
