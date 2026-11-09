@@ -51,13 +51,44 @@ It helps with decisions; **it never controls your character**. Moving, fighting,
 | 🛠️ **Skills & professions** | Character profession/skill overview, goal tracking and shortcuts. |
 | 🎛️ **Playstyles** | Balanced, Fast Leveling and More Gold priorities. |
 
+## 📸 In-game screenshots
+
+**Real gameplay captures of ForeverFlow v0.5.5** — the bronze-and-gold interface, working Route Intelligence, quest discovery, and tracking tools.
+
 <div align="center">
 
-### See ForeverFlow in game
+### 🧭 Today · Route Intelligence
 
-<img src="assets/foreverflow-in-game.jpg" width="100%" alt="ForeverFlow interface in WoW Forever" />
+<img src="assets/screenshots/today-route-intelligence.png" width="665" alt="ForeverFlow Today tab showing Goblin Invaders ready for turn-in, Next Best Action, playstyle controls, character stats and follow-up advice" />
 
-<sub>Historical in-game screenshot. The modern v0.5.5 interface uses a refined bronze-and-gold theme; more current screenshots are on CurseForge.</sub>
+<sub>Live recommendation, objective state, character overview, and what to do next.</sub>
+
+<table>
+<tr>
+<td width="50%" align="center" valign="top">
+<h3>⚔️ Compact Live Guide</h3>
+<img src="assets/screenshots/guide-compact.png" width="331" alt="ForeverFlow floating Live Guide with current quest, ready-to-turn-in status and session gold" />
+<p><sub>Quest progress, pin controls and session information without opening the dashboard.</sub></p>
+</td>
+<td width="50%" align="center" valign="top">
+<h3>🗺️ Discover Quests</h3>
+<img src="assets/screenshots/discover-quests.png" width="530" alt="ForeverFlow Leveling tab showing reported quests in The Barrens, with map, save, skip and browse controls" />
+<p><sub>Unaccepted quest suggestions, reported pickup locations, travel guidance and planning controls.</sub></p>
+</td>
+</tr>
+<tr>
+<td width="50%" align="center" valign="top">
+<h3>💰 Gold & Gathering</h3>
+<img src="assets/screenshots/gold-tab.png" width="530" alt="ForeverFlow Gold tab showing session earnings, gathering tips, bag space and selectable coin goals" />
+<p><sub>Session gold, gathering suggestions and configurable goals.</sub></p>
+</td>
+<td width="50%" align="center" valign="top">
+<h3>⚙️ Settings & Customization</h3>
+<img src="assets/screenshots/settings-overview.png" width="530" alt="ForeverFlow Settings tab showing Live Guide controls, HUD scale, auto-follow, minimap toggle and view modes" />
+<p><sub>HUD controls, view modes, minimap toggle, auto-follow and layout settings.</sub></p>
+</td>
+</tr>
+</table>
 
 </div>
 
