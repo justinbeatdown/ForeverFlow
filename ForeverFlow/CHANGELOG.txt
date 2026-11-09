@@ -1,3 +1,14 @@
+ForeverFlow 0.5.5 Beta 4 — Discover Quests Offline Edition (test build)
+- Offline quest starter catalog with 70 reported pickup records across The Barrens and Stonetalon Mountains (Horde, Both, and Alliance entries; faction-aware filtering).
+- Quest recommendations now work without client quest-line APIs or talking to the quest giver first.
+- Rank level-appropriate local quests higher; exclude active, completed and skipped quests; warn about elite/group objectives and unverified prerequisites.
+- Show the reported giver name, pickup map coordinates, quest level, and recommendation context.
+- Discover results have Prev/Next pagination; BROWSE ZONES opens the broader catalog; LOCAL PICKS returns to current area.
+- MAP opens the known zone and prints NPC/coordinates; adds an optional TomTom waypoint when installed. No automated movement.
+- Existing beta features retained: quest auto-follow, classic bronze UI, live session pace, Gold/Skills controls.
+- Added DATA_SOURCES.txt with source quality notes and attribution.
+- In-game integration and UI clipping still require owner testing. Never promise a live quest is available from offline data.
+
 ForeverFlow 0.5.5 Beta 2 — Actionable dashboard improvements (test build)
 - Leveling page marks the active quest, highlights selected/pinned quests, and displays its current objective state.
 - Gold page now has OPEN BAGS and PROFESSION PLAN actions, with live bag-space context.

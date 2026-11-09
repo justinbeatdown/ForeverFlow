@@ -39,3 +39,16 @@ never automatically accepts quests, pins unverified NPCs or overrides auto-follo
 Forever-compatible external quest databases are not bundled due to licensing and
 client-validation requirements. If the client exposes no quest lines/starts,
 visit quest-givers or travel to other zones to discover more.
+
+DISCOVER QUESTS (v0.5.5 Beta 4):
+Open Leveling -> DISCOVER QUESTS, or type /flow discover. Offline recommendations
+cover a curated set of 70 reported quest starts in The Barrens and Stonetalon.
+BROWSE ZONES switches between local picks and the combined two-zone catalog.
+PREV/NEXT moves through suggestions. SAVE/UNSAVE and SKIP persist. To revisit
+skipped quests, type /flow discoverreset. MAP gives a reported pickup NPC and
+coordinates; TomTom waypoints are supported when TomTom is installed.
+
+These are candidate quests; prerequisites and actual NPC offers may differ
+in Forever. "REPORTED PICKUP" does not mean currently obtainable. Other areas
+retain the earlier client-observed discovery mode until their catalog expands.
+Data provenance and quality limitations: DATA_SOURCES.txt.

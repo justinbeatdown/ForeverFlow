@@ -169,18 +169,29 @@ function FF:MakeLeveling(p)
         v.discoverRows[i]=r
     end
     v.empty=label(list,"",12,44,590,115,12,C.muted)
+    v.pageLabel=label(list,"",142,274,300,21,11,C.gold,"CENTER")
+    v.pagePrev=button(list,"< PREV",12,270,120,27,function()
+        FF.char.discoverPage=math.max(1,(FF.char.discoverPage or 1)-1)
+        FF:Refresh()
+    end)
+    v.pageNext=button(list,"NEXT >",475,270,137,27,function()
+        FF.char.discoverPage=(FF.char.discoverPage or 1)+1
+        FF:Refresh()
+    end)
     local foot=panel(p,14,443,624,56)
     v.myQuests=button(foot,"MY QUESTS",12,11,187,33,function()
         FF.char.discoverView=false;FF:Refresh()
     end)
     v.discover=button(foot,"DISCOVER QUESTS",208,11,195,33,function()
         FF.char.discoverView=true
+        FF.char.discoverPage=1
         if FF.snapshot then FF:FindDiscoveries(FF.snapshot,true) end
         FF:Refresh()
     end)
     v.action=button(foot,"AUTO / UNPIN",412,11,200,33,function()
         if FF.char.discoverView then
-            FF:ResetSkippedDiscoveries()
+            FF.char.discoverBrowseAll=not FF.char.discoverBrowseAll
+            FF:Refresh()
         else
             FF:UnpinCurrentQuest()
         end
@@ -571,27 +582,36 @@ function FF:UpdateUI()
     local discoverMode=self.char.discoverView==true
     switchHighlight(v.myQuests,not discoverMode)
     switchHighlight(v.discover,discoverMode)
-    v.action.text:SetText(discoverMode and "RESET SKIPPED" or
+    v.action.text:SetText(discoverMode and (self.char.discoverBrowseAll and "LOCAL PICKS" or "BROWSE ZONES") or
         (self.char.manualQuestID>0 and "UNPIN / RESUME AUTO" or "AUTO / UNPIN"))
     v.listHeading:SetText(discoverMode and "DISCOVER QUESTS  /  NOT IN YOUR LOG" or "QUEST SHORTLIST  /  CHOOSE A ROUTE")
+    v.pageLabel:SetShown(discoverMode)
+    v.pagePrev:SetShown(discoverMode)
+    v.pageNext:SetShown(discoverMode)
     if discoverMode then
         local suggested,detail=self:FindDiscoveries(s)
+        local pages=math.max(1,math.ceil(#suggested/3))
+        self.char.discoverPage=math.max(1,math.min(pages,self.char.discoverPage or 1))
+        local page=self.char.discoverPage
+        v.pageLabel:SetText("PAGE "..page.." / "..pages.."  |  "..#suggested.." MATCHES")
+        v.pagePrev:SetEnabled(page>1)
+        v.pageNext:SetEnabled(page<pages)
         v.summary:SetText("DISCOVERY  |  "..#suggested.." suggestions  |  level "..s.level.."  |  "..shorten(s.zone,30))
         v.description:SetText(shorten(detail,105))
-        v.pace:SetText("CLIENT-OBSERVED QUESTS  |  Eligibility and NPC pickup are not guaranteed")
+        v.pace:SetText("OFFLINE STARTS + CLIENT HINTS  |  NPCs, levels and prerequisites need confirmation")
         for i=1,5 do
             local r=v.rows[i];r.name:Hide();r.objective:Hide();r.pin:Hide()
         end
         local count=math.min(3,#suggested)
         v.empty:SetShown(count==0)
-        v.empty:SetText("No new quest starts detected in this area yet.\n\nOpen a nearby quest giver, then press DISCOVER QUESTS again. Or move to another zone.\n\nOnly client-reported or previously observed quests appear; no invented quests or pickup locations.")
+        v.empty:SetText("No compatible quest pickups found in the available reference.\n\nTry BROWSE ZONES to see nearby quest hubs, or visit a quest giver for live sightings.\n\nOffline catalog currently covers The Barrens and Stonetalon; quest chains and server availability must be checked.")
         for i=1,3 do
-            local r=v.discoverRows[i]; local q=suggested[i]
+            local r=v.discoverRows[i]; local q=suggested[(page-1)*3+i]
             r.quest=q
             for _,part in ipairs({r.name,r.reason,r.map,r.save,r.skip}) do part:SetShown(q~=nil) end
             if q then
-                r.name:SetText(shorten(i..". "..q.title.."  ["..q.confidence.."]",85))
-                r.reason:SetText(shorten(q.why,125))
+                r.name:SetText(shorten(i..". "..q.title.."  ["..q.confidence.."]",78))
+                r.reason:SetText(shorten(q.why,142))
                 r.save.text:SetText(q.saved and "UNSAVE" or "SAVE")
             end
         end

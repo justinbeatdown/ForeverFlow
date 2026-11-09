@@ -9,5 +9,6 @@
 
 Core.lua
 Data.lua
+QuestCatalog.lua
 Discovery.lua
 UI.lua

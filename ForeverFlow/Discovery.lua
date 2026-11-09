@@ -24,6 +24,36 @@ end
 local function currentMap()
     return C_Map and safe(C_Map.GetBestMapForUnit,"player") or nil
 end
+local function playerZoneKey(mapID)
+    local z=type(GetZoneText)=="function" and safe(GetZoneText) or nil
+    local sub=type(GetSubZoneText)=="function" and safe(GetSubZoneText) or nil
+    local info=C_Map and mapID and safe(C_Map.GetMapInfo,mapID)
+    local names={z,sub,type(info)=="table" and info.name or nil}
+    for _,name in ipairs(names) do
+        if type(name)=="string" then
+            local normalized=name:lower()
+            if normalized:find("stonetalon",1,true) then return 406 end
+            if normalized:find("barrens",1,true) then return 17 end
+        end
+    end
+    if mapID==1413 then return 17 end
+    if mapID==1442 then return 406 end
+    return nil
+end
+local function playerPosition(mapID)
+    local pos=C_Map and type(C_Map.GetPlayerMapPosition)=="function" and safe(C_Map.GetPlayerMapPosition,mapID,"player")
+    if pos and type(pos.GetXY)=="function" then
+        local ok,x,y=pcall(pos.GetXY,pos)
+        if ok and type(x)=="number" and type(y)=="number" then return x*100,y*100 end
+    end
+    return nil,nil
+end
+local function faction()
+    local value=type(UnitFactionGroup)=="function" and safe(UnitFactionGroup,"player") or nil
+    if value=="Horde" then return "H" end
+    if value=="Alliance" then return "A" end
+    return nil
+end
 local function zoneTitle(id)
     local info = C_Map and safe(C_Map.GetMapInfo,id)
     return type(info)=="table" and limitedTitle(info.name) or "Current map"
@@ -83,16 +113,46 @@ function FF:FindDiscoveries(snapshot, force)
     local level=tonumber(snapshot.level) or 1
     local seen=self.char.seenDiscoveries or {}
     local ignored=self.char.skippedDiscoveries or {}
+    local zoneKey=playerZoneKey(mapID)
+    local browseAll=self.char.discoverBrowseAll==true
+    local playerFaction=faction()
     local saved=self.char.savedDiscoveries or {}
     local function add(q)
         if not validID(q.id) or current[q.id] or completed(q.id) or ignored[q.id] then return end
         if byID[q.id] then
-            -- Fresh client information takes precedence over cached NPC sightings.
-            if q.source=="clientLine" then byID[q.id]=q end
+            -- Merge new client observations while preserving useful catalog
+            -- pickup details and coordinates instead of dropping them.
+            local old=byID[q.id]
+            if q.source=="seenNPC" or q.source=="clientLine" then
+                old.confidence=q.source=="seenNPC" and "NPC SEEN" or "CLIENT HINT"
+                old.clientSeen=true
+                if q.npc and not old.npc then old.npc=q.npc end
+                if q.title and q.title:sub(1,6)~="Quest " then old.title=q.title end
+            end
             return
         end
         byID[q.id]=q
     end
+    -- Offline catalog works immediately, even when quest-line APIs are absent.
+    -- In current-zone mode, allow cross-zone suggestions when your actual zone
+    -- has no eligible pickup; the user can also switch to browsing nearby hubs.
+    local function catalogPass(includeOtherZone)
+        for _,r in ipairs(self.questCatalog or {}) do
+            local id,name,area,minLevel,questLevel,side,npc,x,y,flags=unpack(r)
+            local match=(area==zoneKey)
+            if (match or includeOtherZone or saved[id]) and (side=="B" or not playerFaction or side==playerFaction) then
+                local zone=(self.catalogZones or {})[area]
+                if zone and level>=minLevel and (questLevel<=level+7 or saved[id]) then
+                    add({id=id,title=name,areaID=area,mapID=zone.uiMapID,
+                        mapName=zone.name,level=questLevel,minLevel=minLevel,
+                        npc=npc,x=x,y=y,flags=flags,source="offline",
+                        confidence="REPORTED PICKUP",typeLabel="OFFLINE QUEST START",
+                        nearby=match})
+                end
+            end
+        end
+    end
+    catalogPass(browseAll)
     if validID(mapID) then
         if force and C_QuestLine and C_QuestLine.RequestQuestLinesForMap then
             safe(C_QuestLine.RequestQuestLinesForMap,mapID)
@@ -139,19 +199,36 @@ function FF:FindDiscoveries(snapshot, force)
                 confidence="SEEN EARLIER"})
         end
     end
+    -- If the present area truly has nothing useful, fall back to the other
+    -- covered leveling hub rather than a dead 0-results view.
+    if not next(byID) and not browseAll then catalogPass(true) end
+    local px,py=playerPosition(mapID)
     for _,q in pairs(byID) do
         local levelDiff=type(q.level)=="number" and math.abs(level-q.level) or nil
         q.saved=saved[q.id]==true
-        q.score=(q.source=="clientLine" and 65 or q.source=="questPOI" and 48 or 40)
-            +(q.saved and 45 or 0)+(q.mapID==mapID and 20 or -10)
-            +(levelDiff and math.max(-60,22-levelDiff*8) or 0)
-        local why=q.saved and "Saved for later; " or ""
-        why=why..(q.source=="seenNPC" and ("Seen at "..(q.npc or "a quest giver").."; " )
-            or q.source=="questPOI" and "Map shows a quest start; "
-            or "Client lists a possible quest line; ")
-        why=why..(levelDiff and ("quest level ~"..q.level.."; ") or "level requirements not confirmed; ")
-            .."check the quest giver for eligibility"
-        q.why=why
+        local sameZone=(q.areaID and q.areaID==zoneKey) or (q.mapID and q.mapID==mapID)
+        local nearbyDistance=nil
+        if q.source=="offline" and sameZone and px and py and q.x and q.y then
+            nearbyDistance=math.sqrt((px-q.x)^2+(py-q.y)^2)
+        end
+        q.score=(q.source=="offline" and 70 or q.source=="clientLine" and 65 or q.source=="questPOI" and 55 or 45)
+            +(q.saved and 18 or 0)+(sameZone and 48 or -48)
+            +(levelDiff and math.max(-70,40-levelDiff*10) or 0)
+            -(nearbyDistance and math.floor(nearbyDistance*.85) or 0)
+            -(q.flags=="elite" and 75 or 0)
+            -(q.minLevel and q.minLevel>level-1 and 6 or 0)
+        if q.source=="offline" then
+            q.why=(q.saved and "SAVED | " or "")
+                ..(q.flags=="elite" and "ELITE / GROUP? | " or "")
+                .."Pick up: "..(q.npc or "unknown")
+                ..(q.x and string.format(" %.1f, %.1f",q.x,q.y) or "")
+                .." | "..tostring(q.mapName or "Unknown zone")
+                .." | Lv "..tostring(q.level or "?").."; prerequisites unverified"
+        else
+            q.why=(q.saved and "SAVED | " or "")
+                ..(q.npc and ("Seen at "..q.npc.."; ") or "Client-listed quest start; ")
+                .."Lv "..tostring(q.level or "?").."; confirm prerequisites"
+        end
         list[#list+1]=q
     end
     table.sort(list,function(a,b)
@@ -159,8 +236,8 @@ function FF:FindDiscoveries(snapshot, force)
         return a.id<b.id
     end)
     self.discoveredQuests=list
-    local info=(#list>0 and (#list.." possible unaccepted quests found on map / previously seen")
-        or "No unaccepted quests exposed by this client here. Talk to a quest giver or try another zone.")
+    local info=(#list>0 and (#list.." possible quests: offline pickup records + client hints; check NPC / chain access")
+        or "No matching quest starts in this area at your level. Try BROWSE ZONES or talk to a quest giver.")
     return list,info
 end
 function FF:ToggleSavedDiscovery(id)
@@ -185,9 +262,25 @@ function FF:ShowDiscoveryOnMap(q)
         self:Message("Open your world map after combat to review this quest area.")
         return
     end
-    if type(ToggleWorldMap)=="function" then safe(ToggleWorldMap) end
-    if validID(q.mapID) and WorldMapFrame and type(WorldMapFrame.SetMapID)=="function" then
-        safe(WorldMapFrame.SetMapID,WorldMapFrame,q.mapID)
+    local zone=tostring(q.mapName or "unknown")
+    if q.x and q.y then
+        local formatted=string.format("%.1f, %.1f",q.x,q.y)
+        -- Optional TomTom integration; user must already have TomTom installed.
+        if TomTom and type(TomTom.AddWaypoint)=="function" and validID(q.mapID) then
+            local ok=pcall(TomTom.AddWaypoint,TomTom,q.mapID,q.x/100,q.y/100,
+                {title="ForeverFlow: "..tostring(q.npc or q.title),persistent=false})
+            if ok then self:Message("TomTom waypoint: "..zone.." "..formatted.."; NPC: "..tostring(q.npc or "unknown")) end
+        end
+        if type(ToggleWorldMap)=="function" and (not WorldMapFrame or not WorldMapFrame:IsShown()) then safe(ToggleWorldMap) end
+        if validID(q.mapID) and WorldMapFrame and type(WorldMapFrame.SetMapID)=="function" then
+            safe(WorldMapFrame.SetMapID,WorldMapFrame,q.mapID)
+        end
+        self:Message("Reported pickup: "..tostring(q.npc or "quest giver").." in "..zone.." at "..formatted..". Check quest prerequisites.")
+    else
+        if type(ToggleWorldMap)=="function" and (not WorldMapFrame or not WorldMapFrame:IsShown()) then safe(ToggleWorldMap) end
+        if validID(q.mapID) and WorldMapFrame and type(WorldMapFrame.SetMapID)=="function" then
+            safe(WorldMapFrame.SetMapID,WorldMapFrame,q.mapID)
+        end
+        self:Message("Map area: "..zone..". Quest-giver pickup coordinates not known.")
     end
-    self:Message("Map area: "..tostring(q.mapName or "unknown")..". A quest-giver pickup pin is NOT verified.")
 end

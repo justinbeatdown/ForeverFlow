@@ -103,3 +103,17 @@ DISCOVER QUESTS / 0.5.5 Beta 3 live validation
 [ ] After turn-in, normal next-quest auto-selection still works.
 [ ] /flow discover opens the new view without Lua errors.
 [ ] Recheck at different levels, factions and zones; client APIs may expose no candidates.
+
+BETA 4 / OFFLINE QUEST DISCOVERY TEST
+1. Level 17 Horde Shaman in Windshear Crag: Leveling -> DISCOVER QUESTS
+   should show at least one reported pickup without talking to an NPC.
+2. Verify NPC names and coordinates are shown in the card. MAP should
+   announce a reported pickup and open the zone; TomTom waypoint is optional.
+3. BROWSE ZONES shows Barrens suggestions, LOCAL PICKS restores the local view.
+4. NEXT/PREV pages beyond the first 3; SAVE and SKIP remain operational.
+5. No Alliance-only pickup should be recommended to a Horde player.
+6. Active and completed quests should be omitted. Test one turn-in and make
+   sure auto-follow still selects the next active quest.
+7. If UI errors, /console scriptErrors 1 and report the error/screenshot.
+8. Confirm no unexpected map window closing, bad frame clipping or taint.
+

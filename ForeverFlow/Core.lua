@@ -54,6 +54,8 @@ function FF:InitDB()
     c.lifetime.earned=numberOr(c.lifetime.earned,0)
     c.lifetime.sessions=numberOr(c.lifetime.sessions,0)
     if c.discoverView==nil then c.discoverView=false end
+    if c.discoverBrowseAll==nil then c.discoverBrowseAll=false end
+    c.discoverPage=math.max(1,math.floor(numberOr(c.discoverPage,1)))
     if type(c.savedDiscoveries)~="table" then c.savedDiscoveries={} end
     if type(c.skippedDiscoveries)~="table" then c.skippedDiscoveries={} end
     if type(c.seenDiscoveries)~="table" then c.seenDiscoveries={} end
@@ -361,6 +363,7 @@ SlashCmdList.FOREVERFLOW=function(input)
         FF.window:Show();FF.char.visible=true;FF:ShowTab("leveling")
         if FF.snapshot then FF:FindDiscoveries(FF.snapshot,true) end
         FF:Refresh()
+    elseif cmd=="discoverzones" then FF.char.discoverBrowseAll=not FF.char.discoverBrowseAll;FF:Refresh()
     elseif cmd=="discoverreset" then FF:ResetSkippedDiscoveries()
     elseif cmd=="stats" or cmd=="session" then FF:SessionSummary()
     elseif cmd=="pace" then

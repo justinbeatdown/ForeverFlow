@@ -1,0 +1,26 @@
+FOREVERFLOW v0.5.5 BETA 4 - OFFLINE QUEST REFERENCE
+
+Offline quest records (IDs, NPC names, reported minimum levels, quest levels,
+recorded pickup coordinates) were independently compiled as factual references
+from the publicly accessible zone listings:
+  https://questing.wiki/wow-forever/zones/17/   (The Barrens)
+  https://questing.wiki/wow-forever/zones/406/  (Stonetalon Mountains)
+
+These zone records credit the Everything Quests/EverythingQuests project and
+underlying WoW Forever community sources. Everything Quests and its Forever
+location data are available under the MIT license:
+  https://github.com/wheelbarrel00/EverythingQuests
+  https://github.com/wheelbarrel00/EverythingQuests/blob/main/LICENSE
+
+No code from that addon is bundled. The concise quest facts here are curated,
+not a full copy of its database. For attribution and upstream license details,
+see the URLs above. ForeverFlow's own code is independent.
+
+SOURCE AND QUALITY WARNINGS:
+- Quest names, levels, map starts and NPC spawns are community reports, not
+  guaranteed currently live in the server or verified on your character.
+- A reported minimum level is not proof all chain prerequisites are satisfied.
+- Locations are pickup-area hints, never an automated movement instruction.
+- Coordinates can vary with server changes or map versions.
+- Data deliberately focuses on early Horde/Both-faction questing in The Barrens
+  and Stonetalon; other zones use existing client-observed discovery.
