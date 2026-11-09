@@ -1,4 +1,4 @@
--- ForeverFlow 0.5.2 | gold/charcoal dashboard and compact live field guide.
+-- ForeverFlow 0.5.3 | gold/charcoal dashboard and compact live field guide.
 local _,FF=...
 local C=FF.colors
 local W,H=652,720
@@ -279,10 +279,9 @@ function FF:CreateGuide()
     g:SetAlpha(.94)
     g:SetScript("OnDragStart",function(self) if not FF.char.guideLocked then self:StartMoving() end end)
     g:SetScript("OnDragStop",function(self) self:StopMovingOrSizing();FF:SavePosition(self,"guide") end)
-    -- Official circular logo, with full artwork intact and padded inside the header.
-    -- The header rule begins at 38; the badge ends at 34, so neither the icon
-    -- nor the navigation text can overlap the divider or body.
-    g.badge=icon(g,"OfficialCircle.tga",8,4,30,30)
+    -- Compact approved-logo castle/path emblem stays legible at 30px.
+    -- Divider begins at y=38, safely below the 34px badge edge.
+    g.badge=icon(g,"GuideLogoSmall.tga",8,4,30,30)
     label(g,"FOREVER|cffffbd5cFLOW|r",45,7,130,20,12,C.white)
     g.follow=label(g,"AUTO-FOLLOW",172,10,77,14,9,C.green,"RIGHT")
     g.collapse=button(g,"v",255,7,20,20,function(_,mouse)
@@ -347,11 +346,11 @@ function FF:CreateMinimapButton()
     -- A true round RGBA texture: no BackdropTemplate / square border or dark sticker.
     -- Independent of Blizzard minimap mask so other addon/minimap skins cannot clip it.
     local pic=b:CreateTexture(nil,"ARTWORK")
-    pic:SetTexture(FF.media.."OfficialCircle.tga")
+    pic:SetTexture(FF.media.."MinimapIconRound.tga")
     -- Inset the actual circular logo so its compass tips stay visible and
     -- the Blizzard circular highlight does not collide with other icons.
-    pic:SetPoint("TOPLEFT",b,"TOPLEFT",3,-3)
-    pic:SetPoint("BOTTOMRIGHT",b,"BOTTOMRIGHT",-3,3)
+    pic:SetPoint("TOPLEFT",b,"TOPLEFT",2,-2)
+    pic:SetPoint("BOTTOMRIGHT",b,"BOTTOMRIGHT",-2,2)
     b.icon=pic
     -- Blizzard's circular minimap-button hover ring, no rectangular highlight.
     b:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight", "ADD")
