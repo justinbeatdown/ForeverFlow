@@ -296,21 +296,34 @@ function FF:MakeSkills(p)
     v.coachNext=button(v.coach,"NEXT PROFESSION",18,436,280,34,function() FF:NextProfessionCoach() end)
     v.coachClose=button(v.coach,"BACK TO SKILLS",307,436,285,34,function() v.coach:Hide() end)
     v.coach:Hide()
-    -- Recipe Flow is driven by *observed* native profession window data only.
-    v.recipeButton=button(v.coach,"VIEW LIVE RECIPES + REAGENTS",18,399,574,28,function()
+    -- Compact, information-dense recipe workbench. All icon textures, recipes
+    -- and ingredient amounts come from the player's game client, never artwork mocks.
+    v.recipeButton=button(v.coach,"OPEN RECIPE WORKBENCH",18,399,574,28,function()
         v.recipes:Show(); FF:Refresh()
     end)
     v.recipes=panel(p,14,9,624,490)
     v.recipes:SetFrameStrata("DIALOG")
     v.recipes:SetFrameLevel(p:GetFrameLevel()+15)
-    heading(v.recipes,"RECIPE FLOW / LIVE PROFESSION DATA")
-    v.recStatus=label(v.recipes,"",14,36,585,27,12,C.white)
+    heading(v.recipes,"PROFESSION WORKBENCH")
+    v.recStatus=label(v.recipes,"",12,34,600,23,11,C.muted)
+
+    local recipesLeft=panel(v.recipes,10,63,295,293)
+    local detailsRight=panel(v.recipes,315,63,299,293)
+    heading(recipesLeft,"KNOWN RECIPES")
+    heading(detailsRight,"SELECTED CRAFT")
     v.recRows={}
-    for i=1,4 do
-        local idx=i
-        local row=button(v.recipes,"",14,67+(i-1)*36,590,32,function(self)
+    for i=1,5 do
+        local row=button(recipesLeft,"",9,33+(i-1)*43,276,39,function(self)
             if self.ffIndex then FF:RecipeFlowSelect(self.ffIndex) end
         end)
+        row.text:ClearAllPoints()
+        row.text:SetPoint("TOPLEFT",row,"TOPLEFT",46,-5)
+        row.text:SetSize(220,17)
+        row.text:SetJustifyH("LEFT")
+        row.sub=label(row,"",46,23,218,14,9,C.muted)
+        row.icon=row:CreateTexture(nil,"ARTWORK")
+        row.icon:SetPoint("TOPLEFT",row,"TOPLEFT",6,-5)
+        row.icon:SetSize(30,30)
         row:SetScript("OnEnter",function(self)
             self:SetBackdropBorderColor(C.gold[1],C.gold[2],C.gold[3],1)
             local data=FF.recipeFlow
@@ -318,39 +331,67 @@ function FF:MakeSkills(p)
             if recipe then FF:RecipeFlowTooltip(self,recipe) end
         end)
         row:SetScript("OnLeave",function(self)
-            self:SetBackdropBorderColor(C.border[1],C.border[2],C.border[3],1)
+            local active=self.ffActive==true
+            self:SetBackdropBorderColor(active and C.gold[1] or C.border[1],active and C.gold[2] or C.border[2],active and C.gold[3] or C.border[3],1)
             if GameTooltip then GameTooltip:Hide() end
         end)
         v.recRows[i]=row
     end
-    v.recPage=label(v.recipes,"",14,218,560,17,10,C.gold,"CENTER")
-    v.recTitle=label(v.recipes,"",14,241,590,21,14,C.white)
-    v.recHint=label(v.recipes,"",14,265,425,20,11,C.muted)
-    v.reagentNext=button(v.recipes,"MORE INGREDIENTS",447,261,157,24,function()
-        local rec=FF:RecipeFlowSelected()
-        if rec then FF.char.recipeReagentPage=((FF.char.recipeReagentPage or 0)+1)%math.max(1,math.ceil(#rec.reagents/4)); FF:Refresh() end
-    end)
+    v.recPrev=button(recipesLeft,"<",10,258,43,26,function() FF:RecipeFlowPage(-1) end)
+    v.recPage=label(recipesLeft,"",62,264,169,18,10,C.gold,"CENTER")
+    v.recNext=button(recipesLeft,">",242,258,43,26,function() FF:RecipeFlowPage(1) end)
+
+    v.recIcon=detailsRight:CreateTexture(nil,"ARTWORK")
+    v.recIcon:SetPoint("TOPLEFT",detailsRight,"TOPLEFT",11,-37)
+    v.recIcon:SetSize(39,39)
+    v.recTitle=label(detailsRight,"",59,37,227,22,13,C.white)
+    v.recHint=label(detailsRight,"",59,60,226,27,10,C.gold)
+    rule(detailsRight,10,92,278,.28)
+    v.recIngredientTitle=label(detailsRight,"INGREDIENTS",11,101,274,18,11,C.gold)
     v.reagents={}
-    for i=1,4 do
-        local b=button(v.recipes,"",14,291+(i-1)*29,590,26,function() end)
+    for i=1,5 do
+        local b=CreateFrame("Button",nil,detailsRight,"BackdropTemplate")
+        b:SetPoint("TOPLEFT",detailsRight,"TOPLEFT",10,-(124+(i-1)*31))
+        b:SetSize(279,29)
+        skin(b,C.button,C.border,"ButtonBG.tga")
+        b.icon=b:CreateTexture(nil,"ARTWORK")
+        b.icon:SetPoint("LEFT",b,"LEFT",4,0)
+        b.icon:SetSize(23,23)
+        b.name=label(b,"",34,5,151,22,11,C.white)
+        b.amount=label(b,"",184,5,87,22,10,C.gold,"RIGHT")
         b:SetScript("OnEnter",function(self)
+            self:SetBackdropBorderColor(C.gold[1],C.gold[2],C.gold[3],1)
             local recipe=FF:RecipeFlowSelected()
-            local k=(FF.char.recipeReagentPage or 0)*4+i
-            if recipe and recipe.reagents[k] then FF:RecipeFlowTooltip(self,recipe.reagents[k]) end
+            if recipe and recipe.reagents[self.ffReagentIndex or 0] then
+                FF:RecipeFlowTooltip(self,recipe.reagents[self.ffReagentIndex])
+            end
         end)
-        b:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end)
+        b:SetScript("OnLeave",function(self)
+            self:SetBackdropBorderColor(C.border[1],C.border[2],C.border[3],1)
+            if GameTooltip then GameTooltip:Hide() end
+        end)
         v.reagents[i]=b
     end
-    v.recPrev=button(v.recipes,"< PREV",14,415,127,27,function() FF:RecipeFlowPage(-1) end)
-    v.recNext=button(v.recipes,"NEXT >",148,415,126,27,function() FF:RecipeFlowPage(1) end)
-    v.recRescan=button(v.recipes,"REFRESH OPEN PROFESSION",282,415,322,27,function()
-        if type(GetNumTradeSkills)=="function" and (not TradeSkillFrame or TradeSkillFrame:IsShown()) then
-            FF:CaptureRecipeFlow("trade")
-        elseif type(GetNumCrafts)=="function" and (not CraftFrame or CraftFrame:IsShown()) then
-            FF:CaptureRecipeFlow("craft")
-        else FF:Message("Open a profession window to read its actual recipes.") end
+    v.reagentNext=button(detailsRight,"MORE REAGENTS >",165,97,123,22,function()
+        local rec=FF:RecipeFlowSelected()
+        if rec then FF.char.recipeReagentPage=((FF.char.recipeReagentPage or 0)+1)%math.max(1,math.ceil(#rec.reagents/5));FF:Refresh() end
     end)
-    v.recClose=button(v.recipes,"BACK TO PROFESSION COACH",14,448,590,27,function() v.recipes:Hide() end)
+
+    local plan=panel(v.recipes,10,366,604,67)
+    heading(plan,"YOUR NEXT STEP")
+    v.recStep=label(plan,"",12,33,580,29,12,C.white)
+    v.recClose=button(v.recipes,"BACK TO SKILLS",10,445,160,29,function() v.recipes:Hide() end)
+    v.recRescan=button(v.recipes,"REFRESH RECIPES",182,445,195,29,function()
+        if type(GetNumTradeSkills)=="function" and TradeSkillFrame and TradeSkillFrame:IsShown() then
+            FF:CaptureRecipeFlow("trade")
+        elseif type(GetNumCrafts)=="function" and CraftFrame and CraftFrame:IsShown() then
+            FF:CaptureRecipeFlow("craft")
+        else FF:Message("Open your profession window first to update known recipes.") end
+    end)
+    v.recBags=button(v.recipes,"OPEN BAGS",389,445,225,29,function()
+        if type(ToggleAllBags)=="function" then ToggleAllBags()
+        elseif type(OpenAllBags)=="function" then OpenAllBags() end
+    end)
     v.recipes:Hide()
     return v
 end
@@ -827,40 +868,60 @@ function FF:UpdateUI()
     end
     local data=self.recipeFlow
     local page=math.max(1,tonumber(self.char.recipeFlowPage) or 1)
-    local pages=math.max(1,math.ceil((data and #data.recipes or 0)/4))
+    local pages=math.max(1,math.ceil((data and #data.recipes or 0)/5))
     page=math.min(page,pages)
     if data then
-        v.recStatus:SetText(data.name.."  |  "..#data.recipes.." observed recipes | open the trade window to refresh")
+        v.recStatus:SetText(shorten(data.name,30).."  |  "..#data.recipes.." known recipes observed  |  Open the profession window to refresh")
     else
-        v.recStatus:SetText("No recipes observed. Open Alchemy, Cooking or another crafting window.")
+        v.recStatus:SetText("Open a crafting profession window to load real recipes and reagents.")
     end
     for i,b in ipairs(v.recRows) do
-        local at=(page-1)*4+i
+        local at=(page-1)*5+i
         local recipe=data and data.recipes[at]
         b.ffIndex=recipe and at or nil
+        b:SetShown(recipe~=nil)
         if recipe then
             local color=recipe.difficulty=="optimal" and "|cffffa342" or
                 recipe.difficulty=="medium" and "|cffffff77" or
                 recipe.difficulty=="easy" and "|cff7be47e" or "|cffbbbbbb"
-            b.text:SetText(color..shorten(recipe.name,41).."|r  |  Can craft "..recipe.available.."  |  Need "..recipe.missingTotal)
-        else b.text:SetText(i==1 and not data and "OPEN A PROFESSION WINDOW FIRST" or "") end
-        b:SetShown(recipe~=nil or (i==1 and not data))
+            b.text:SetText(color..shorten(recipe.name,29).."|r")
+            b.sub:SetText("Craftable: "..recipe.available.."   |   Missing: "..recipe.missingTotal)
+            b.icon:SetTexture(recipe.texture or (recipe.id and type(GetItemIcon)=="function" and GetItemIcon(recipe.id)) or "Interface\\Icons\\INV_Misc_QuestionMark")
+        end
         switchHighlight(b,recipe and at==(self.char.recipeFlowSelected or 1))
     end
-    v.recPage:SetText(data and ("RECIPE PAGE "..page.." / "..pages.."  |  CLICK RECIPE TO INSPECT") or "Recipes are read from your own known recipe list.")
-    local recipe=self:RecipeFlowSelected()
-    v.recTitle:SetText(recipe and shorten(recipe.name,65) or "No recipe selected")
-    v.recHint:SetText(recipe and ("Difficulty: "..tostring(recipe.difficulty).." | Craftable: "..recipe.available.." | Missing units: "..recipe.missingTotal) or "Open a trained crafting profession. No fictional recipe costs are shown.")
-    for i,b in ipairs(v.reagents) do
-        local reagent=recipe and recipe.reagents[(self.char.recipeReagentPage or 0)*4+i]
-        b:SetShown(reagent~=nil)
-        if reagent then
-            b.text:SetText(shorten(reagent.name,37).."   "..reagent.owned.." / "..reagent.need.." owned"..(reagent.missing>0 and "  |cffff9966MISSING "..reagent.missing.."|r" or "  |cff77dd98READY|r"))
-        end
-    end
-    v.reagentNext:SetShown(recipe and #recipe.reagents>4 or false)
+    v.recPage:SetText((data and (page.." / "..pages) or "NO RECIPES"))
     v.recPrev:SetEnabled(data and page>1 or false)
     v.recNext:SetEnabled(data and page<pages or false)
+    local recipe=self:RecipeFlowSelected()
+    v.recTitle:SetText(recipe and shorten(recipe.name,31) or "No recipe selected")
+    v.recHint:SetText(recipe and ("Difficulty: "..tostring(recipe.difficulty).." | Can make: "..recipe.available) or "Select a known recipe to inspect.")
+    if recipe then
+        v.recIcon:SetTexture(recipe.texture or (recipe.id and type(GetItemIcon)=="function" and GetItemIcon(recipe.id)) or "Interface\\Icons\\INV_Misc_QuestionMark")
+    else v.recIcon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark") end
+    local reagentPage=math.max(0,tonumber(self.char.recipeReagentPage) or 0)
+    for i,b in ipairs(v.reagents) do
+        local k=reagentPage*5+i
+        local reagent=recipe and recipe.reagents[k]
+        b.ffReagentIndex=reagent and k or nil
+        b:SetShown(reagent~=nil)
+        if reagent then
+            b.name:SetText(shorten(reagent.name,23))
+            b.amount:SetText((reagent.missing>0 and "|cffff856b" or "|cff80e5a3")..reagent.owned.." / "..reagent.need.."|r")
+            b.icon:SetTexture(reagent.texture or (reagent.id and type(GetItemIcon)=="function" and GetItemIcon(reagent.id)) or "Interface\\Icons\\INV_Misc_QuestionMark")
+        end
+    end
+    v.reagentNext:SetShown(recipe and #recipe.reagents>5 or false)
+    if recipe then
+        local missing=self:RecipeFlowShoppingList()
+        if #missing>0 then
+            local names={}
+            for i=1,math.min(#missing,3) do names[#names+1]=missing[i].need.."x "..missing[i].name end
+            v.recStep:SetText("Collect "..shorten(table.concat(names,", "),85)..". Reopen the profession window to refresh counts.")
+        else
+            v.recStep:SetText("Materials ready for one craft, based on the last profession scan. Use the game's profession window to craft.")
+        end
+    else v.recStep:SetText("Open Alchemy, Cooking, or another crafting skill. ForeverFlow reads your actual recipe list.") end
 
     v=self.views.character
     v.name:SetText(s.className.."  |  Level "..s.level)

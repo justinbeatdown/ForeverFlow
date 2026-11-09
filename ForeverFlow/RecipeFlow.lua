@@ -22,6 +22,8 @@ local function collect(source)
         local name,difficulty,available=call((trade and GetTradeSkillInfo) or (not trade and GetCraftInfo),i)
         if type(name)=='string' and name~='' and difficulty~='header' and difficulty~='subheader' then
             local output=call((trade and GetTradeSkillItemLink) or (not trade and GetCraftItemLink),i)
+            local recipeIcon=call((trade and GetTradeSkillIcon) or (not trade and GetCraftIcon),i)
+            if not recipeIcon and linkID(output) and type(GetItemIcon)=="function" then recipeIcon=call(GetItemIcon,linkID(output)) end
             local reagents={}
             local n=tonumber(call((trade and GetTradeSkillNumReagents) or (not trade and GetCraftNumReagents),i)) or 0
             local craftable=math.max(0,tonumber(available) or 0)
@@ -38,7 +40,7 @@ local function collect(source)
                         link=rlink,id=linkID(rlink),texture=rt}
                 end
             end
-            recipes[#recipes+1]={name=name,index=i,source=source,link=output,id=linkID(output),
+            recipes[#recipes+1]={name=name,index=i,source=source,link=output,id=linkID(output),texture=recipeIcon,
                 difficulty=difficulty or 'unknown',available=craftable,reagents=reagents,
                 missingTotal=missingTotal}
         end
@@ -70,14 +72,14 @@ function FF:RecipeFlowSelect(index)
     if not self.recipeFlow or not self.char then return end
     index=math.max(1,math.min(#self.recipeFlow.recipes,math.floor(tonumber(index) or 1)))
     self.char.recipeFlowSelected=index
-    self.char.recipeFlowPage=math.floor((index-1)/4)+1
+    self.char.recipeFlowPage=math.floor((index-1)/5)+1
     self.char.recipeReagentPage=0
     self:Refresh()
 end
 function FF:RecipeFlowPage(step)
     local data=self.recipeFlow
     if not data or not self.char then return end
-    local maxPage=math.max(1,math.ceil(#data.recipes/4))
+    local maxPage=math.max(1,math.ceil(#data.recipes/5))
     self.char.recipeFlowPage=math.max(1,math.min(maxPage,(self.char.recipeFlowPage or 1)+(step or 0)))
     self:Refresh()
 end

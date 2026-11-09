@@ -139,3 +139,8 @@ ForeverFlow 0.5.5 Beta 3 - Discover Quests (test build)
 - Added /flow route (full reasoning), /flow routepickups (open discovery) and WHY? button on Today.
 - Preserved auto quest following, pinned quests, classic visual style and Gold/Skills interactions.
 - No invented XP rewards, travel ETA, quest eligibility, automatic character control or guaranteed NPC locations.
+
+0.5.6 Beta 3 — Native Profession Workbench
+- Reorganized observed recipe data into compact known-recipes and ingredient panels, with native recipe/reagent icons and item-link hover tooltips.
+- Integrated selection, pagination, missing ingredient amounts, refresh and bag actions.
+- All displayed recipes and quantities are sourced from the game profession window; no simulated auction prices or skills.
