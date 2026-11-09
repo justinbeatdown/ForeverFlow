@@ -1,3 +1,12 @@
+v0.5.3 test checklist
+[ ] Live Guide badge has visible castle, path and gold compass, not unreadable tiny text.
+[ ] Title, FOCUSED status and close/expand controls do not overlap.
+[ ] Minimap icon sits centered within its circular button.
+[ ] AddOns list loads new icon, no square background.
+[ ] New quest is still auto-watched/focused when supported.
+[ ] /flow follow on/off and /flow hud tiny/normal work.
+[ ] Enable /console scriptErrors 1 and confirm no new errors.
+
 v0.5.2 branding checks
 1. On login, confirm the minimap button uses the EXACT full official
    castle/path/ForeverFlow circular logo, not a generic compass icon.
