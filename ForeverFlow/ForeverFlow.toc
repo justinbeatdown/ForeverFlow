@@ -12,6 +12,7 @@ Data.lua
 QuestCatalog.lua
 WorldQuestData.lua
 WorldQuestEngine.lua
+ProfessionCoach.lua
 Discovery.lua
 Planner.lua
 UI.lua

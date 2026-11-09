@@ -280,6 +280,22 @@ function FF:MakeSkills(p)
         elseif type(ToggleSpellBook)=="function" then ToggleSpellBook("professions")
         else FF:Message("Open your Professions panel from the game UI (default K).") end
     end)
+    v.coachButton=button(top,"LEVELING PLAN",414,7,195,24,function()
+        v.coach:SetShown(not v.coach:IsShown())
+        FF:Refresh()
+    end)
+    v.coach=panel(p,14,9,624,490)
+    v.coach:SetFrameStrata("DIALOG")
+    v.coach:SetFrameLevel(p:GetFrameLevel()+8)
+    heading(v.coach,"PROFESSION LEVELING COACH")
+    v.coachName=label(v.coach,"",18,52,575,28,19,C.white)
+    v.coachRank=label(v.coach,"",18,88,575,28,13,C.gold)
+    v.coachStep=label(v.coach,"",18,142,573,62,15,C.white)
+    v.coachAction=label(v.coach,"",18,228,573,92,14,C.white)
+    v.coachTip=label(v.coach,"",18,347,573,60,12,C.muted)
+    v.coachNext=button(v.coach,"NEXT PROFESSION",18,436,280,34,function() FF:NextProfessionCoach() end)
+    v.coachClose=button(v.coach,"BACK TO SKILLS",307,436,285,34,function() v.coach:Hide() end)
+    v.coach:Hide()
     return v
 end
 function FF:MakeCharacter(p)
@@ -739,6 +755,15 @@ function FF:UpdateUI()
     v.skill:SetText(shorten(s.skillTip,118))
     v.gather:SetText("GATHERING GOAL: "..got.." / "..goal.."  |  "..(remaining>0 and (remaining.." materials left") or "GOAL REACHED").."  (bag gains, not proven harvests)")
     v.goal.text:SetText(remaining>0 and "RAISE GOAL +10" or "SET NEXT GOAL +10")
+    if self.SelectedProfessionCoach then
+        local guide,idx,count=self:SelectedProfessionCoach(s)
+        v.coachName:SetText(guide.name)
+        v.coachRank:SetText(guide.kind.."  |  "..guide.skill.." / "..(guide.cap>0 and guide.cap or "?").."  |  "..idx.." / "..count)
+        v.coachStep:SetText(guide.step)
+        v.coachAction:SetText(guide.action)
+        v.coachTip:SetText(guide.tip)
+        v.coachNext.text:SetText(count>1 and "NEXT PROFESSION  >" or "ONLY ONE TRAINED")
+    end
 
     v=self.views.character
     v.name:SetText(s.className.."  |  Level "..s.level)

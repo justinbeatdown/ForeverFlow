@@ -81,7 +81,18 @@ function FF:WorldQuestCandidates(snapshot,mapID,browseAll,saved,ignored)
  if type(data)~='table' or type(data.start)~='table' then return {} end
  local level=tonumber(snapshot.level) or 1
  local clock=GetTime and GetTime() or 0
- local cacheKey=table.concat({tostring(mapID), tostring(level), tostring(browseAll), tostring(#(snapshot.quests or {}))}, ':')
+ -- Cache must also reflect actual quest IDs, saved choices and skips. A count-only
+ -- key can show stale suggestions after accepting/abandoning different quests.
+ local function signature(tbl)
+  local ids={}
+  for id,on in pairs(tbl or {}) do if on then ids[#ids+1]=tostring(id) end end
+  table.sort(ids)
+  return table.concat(ids,',')
+ end
+ local accepted={}
+ for _,q in ipairs(snapshot.quests or {}) do if q.id then accepted[q.id]=true end end
+ local cacheKey=table.concat({tostring(mapID),tostring(level),tostring(browseAll),
+  signature(accepted),signature(saved),signature(ignored)}, ':')
  local cache=self._worldQuestCache
  if cache and cache.key==cacheKey and clock-cache.when<5 then return cache.results end
  local active=activeIDs(snapshot)

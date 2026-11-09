@@ -1,3 +1,5 @@
+0.5.6 beta: Added an in-addon profession leveling coach for all client-detected professions; corrected quest cache invalidation and coverage reporting.
+0.5.6 beta: Full-world quest data expansion and profession leveling coach (client-aware, no invented recipe unlocks).
 v0.5.6-beta1 - World Quest Coverage (TEST RELEASE)
 - Staged 4,346 documented quest starts across 79 map areas from MIT-licensed Forever data.
 - Added faction/race/class, min-level, quest-level, prerequisites, exclusions and completion filters.
