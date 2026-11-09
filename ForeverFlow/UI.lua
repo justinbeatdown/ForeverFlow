@@ -1,4 +1,4 @@
--- ForeverFlow 0.5.1 | gold/charcoal dashboard and compact live field guide.
+-- ForeverFlow 0.5.2 | gold/charcoal dashboard and compact live field guide.
 local _,FF=...
 local C=FF.colors
 local W,H=652,720
@@ -271,7 +271,7 @@ function FF:CreateGuide()
     -- A compact HUD ribbon (not a second dashboard). No buttons in the default
     -- 88px view; the extended view is optional for extra detail and controls.
     local g=CreateFrame("Frame",nil,UIParent,"BackdropTemplate")
-    g:SetSize(302,88)
+    g:SetSize(302,103)
     g:SetPoint("CENTER",UIParent,"CENTER",self.char.guideX,self.char.guideY)
     g:SetFrameStrata("MEDIUM");g:SetClampedToScreen(true)
     g:SetMovable(true);g:EnableMouse(true);g:RegisterForDrag("LeftButton")
@@ -279,12 +279,13 @@ function FF:CreateGuide()
     g:SetAlpha(.94)
     g:SetScript("OnDragStart",function(self) if not FF.char.guideLocked then self:StartMoving() end end)
     g:SetScript("OnDragStop",function(self) self:StopMovingOrSizing();FF:SavePosition(self,"guide") end)
-    -- A small transparent rendition of our ORIGINAL circular ForeverFlow logo,
-    -- not the old generic compass icon.
-    icon(g,"BrandSeal.tga",4,2,35,35)
-    label(g,"FOREVER|cffffbd5cFLOW|r",42,5,160,19,12,C.white)
-    g.follow=label(g,"AUTO-FOLLOW",182,8,73,14,9,C.green,"RIGHT")
-    g.collapse=button(g,"v",257,5,21,21,function(_,mouse)
+    -- Official circular logo, with full artwork intact and padded inside the header.
+    -- The header rule begins at 38; the badge ends at 34, so neither the icon
+    -- nor the navigation text can overlap the divider or body.
+    g.badge=icon(g,"OfficialCircle.tga",8,4,30,30)
+    label(g,"FOREVER|cffffbd5cFLOW|r",45,7,130,20,12,C.white)
+    g.follow=label(g,"AUTO-FOLLOW",172,10,77,14,9,C.green,"RIGHT")
+    g.collapse=button(g,"v",255,7,20,20,function(_,mouse)
         if mouse=="RightButton" then
             FF.char.guideCollapsed=not FF.char.guideCollapsed
             FF:SetGuideCollapsed(FF.char.guideCollapsed)
@@ -296,20 +297,20 @@ function FF:CreateGuide()
         end
     end)
     g.collapse:RegisterForClicks("LeftButtonUp","RightButtonUp")
-    button(g,"x",280,5,19,21,function() FF:ToggleGuide() end)
-    rule(g,5,30,292,.3)
+    button(g,"x",278,7,19,20,function() FF:ToggleGuide() end)
+    rule(g,7,38,287,.3)
     g.content=CreateFrame("Frame",nil,g)
-    g.content:SetPoint("TOPLEFT",g,"TOPLEFT",0,-32)
-    g.content:SetSize(302,115)
-    g.kind=label(g.content,"",9,0,290,16,9,C.gold)
-    g.title=label(g.content,"",9,15,287,22,14,C.white)
-    g.where=label(g.content,"",9,38,285,18,10,C.blue)
+    g.content:SetPoint("TOPLEFT",g,"TOPLEFT",0,-42)
+    g.content:SetSize(302,144)
+    g.kind=label(g.content,"",9,0,283,16,9,C.gold)
+    g.title=label(g.content,"",9,17,283,23,14,C.white)
+    g.where=label(g.content,"",9,40,280,18,10,C.blue)
     -- The detailed text and buttons live ONLY in the expanded mode.
-    g.detail=label(g.content,"",9,61,286,29,10,C.white)
-    g.gold=label(g.content,"",9,91,286,15,10,C.green)
-    g.map=button(g.content,"MAP",7,115,88,24,function() FF:MapAction() end)
-    g.next=button(g.content,"NEXT",106,115,88,24,function() FF:SkipQuest() end)
-    g.open=button(g.content,"DETAILS",205,115,90,24,function()
+    g.detail=label(g.content,"",9,62,282,29,10,C.white)
+    g.gold=label(g.content,"",9,95,282,15,10,C.green)
+    g.map=button(g.content,"MAP",7,119,88,24,function() FF:MapAction() end)
+    g.next=button(g.content,"NEXT",106,119,88,24,function() FF:SkipQuest() end)
+    g.open=button(g.content,"DETAILS",205,119,90,24,function()
         FF.window:Show();FF.char.visible=true;FF:ShowTab("today")
     end)
     self.guide=g
@@ -320,8 +321,9 @@ function FF:SetGuideCollapsed(value)
     if not self.guide then return end
     self.char.guideCollapsed=value and true or false
     local compact=self.char.hudMinimal==true
-    -- collapsed:32, default compact:89, expanded:184
-    self.guide:SetHeight(value and 32 or (compact and 89 or 185))
+    -- Collapsed header: 40px. Compact: 103px. Expanded: 190px.
+    -- Every child ends INSIDE its parent; no clipped logos or buttons.
+    self.guide:SetHeight(value and 40 or (compact and 103 or 190))
     self.guide.content:SetShown(not value)
     self.guide.collapse.text:SetText(value and "+" or (compact and "v" or "^"))
     self.guide.detail:SetShown(not value and not compact)
@@ -345,8 +347,11 @@ function FF:CreateMinimapButton()
     -- A true round RGBA texture: no BackdropTemplate / square border or dark sticker.
     -- Independent of Blizzard minimap mask so other addon/minimap skins cannot clip it.
     local pic=b:CreateTexture(nil,"ARTWORK")
-    pic:SetTexture(FF.media.."BrandSeal.tga")
-    pic:SetAllPoints(b)
+    pic:SetTexture(FF.media.."OfficialCircle.tga")
+    -- Inset the actual circular logo so its compass tips stay visible and
+    -- the Blizzard circular highlight does not collide with other icons.
+    pic:SetPoint("TOPLEFT",b,"TOPLEFT",3,-3)
+    pic:SetPoint("BOTTOMRIGHT",b,"BOTTOMRIGHT",-3,3)
     b.icon=pic
     -- Blizzard's circular minimap-button hover ring, no rectangular highlight.
     b:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight", "ADD")

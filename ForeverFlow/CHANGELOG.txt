@@ -1,3 +1,13 @@
+ForeverFlow 0.5.2 (Branding + Live Guide clipping hotfix)
+- Replaced all generic/approximate round badges with textures generated directly
+  from the exact approved, transparent circular ForeverFlow logo.
+- Improved minimap button inset and hover clearance, preserving round placement.
+- Rebuilt Live Guide header spacing: icon and title no longer cross its divider.
+- Adjusted compact / expanded guide heights to contain all their content.
+- Updated the addon list icon and the Settings full-logo preview.
+- No changes to quest recommendation, auto-follow, leveling or gold logic.
+- WoW: Forever live-client testing still required.
+
 ForeverFlow v0.5.1 — Smart Follow + Ribbon HUD
 - Auto-watch and native-focus each new recommended quest where the Forever client permits.
 - Quest focus refreshes on recommendation/objective changes, not every polling tick.

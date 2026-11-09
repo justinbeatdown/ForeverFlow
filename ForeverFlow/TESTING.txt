@@ -1,3 +1,14 @@
+v0.5.2 branding checks
+1. On login, confirm the minimap button uses the EXACT full official
+   castle/path/ForeverFlow circular logo, not a generic compass icon.
+2. The icon should be round, fully visible, with no square background.
+3. The Live Guide should show a 30px official-logo graphic entirely above
+   the divider, with no overlap with FOREVERFLOW title / status.
+4. Test collapsed (right click chevron), compact and expanded guide modes.
+5. Check auto-follow and map-pin flow unchanged from 0.5.1.
+6. Ensure the AddOns screen uses the new official logo.
+7. For Lua error text: /console scriptErrors 1 then /reload.
+
 FOREVERFLOW 0.5.1 — IN-GAME TEST CHECKLIST
 =========================================
 [ ] Login: compact 302x89 Live Guide appears; dashboard remains optional.
