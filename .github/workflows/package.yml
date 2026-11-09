@@ -87,6 +87,68 @@ jobs:
           print("World coverage checked: "..count.." documented quests, "..nzone.." map areas.")
           LUA
 
+      - name: Test cross-race, cross-class and profession guidance
+        shell: bash
+        run: |
+          set -euo pipefail
+          lua5.4 - <<'LUA'
+          local FF={questCatalog={}}
+          local race,class=2,7
+          UnitRace=function() return "MockRace","MockRace",race end
+          UnitClass=function() return "MockClass","MOCK",class end
+          IsQuestFlaggedCompleted=function() return false end
+          GetTime=function() return 100 end
+          C_Map={GetMapInfo=function(id) return {name="Map "..tostring(id)} end}
+          assert(loadfile("ForeverFlow/WorldQuestData.lua"))("ForeverFlow",FF)
+          assert(loadfile("ForeverFlow/WorldQuestEngine.lua"))("ForeverFlow",FF)
+          assert(loadfile("ForeverFlow/ProfessionCoach.lua"))("ForeverFlow",FF)
+          local world=FF.worldQuestData
+          -- Smoke test all standard Classic race IDs and all Classic class IDs.
+          local classes={1,2,3,4,5,7,8,9,11}
+          for raceID=1,8 do
+            for _,classID in ipairs(classes) do
+              race,class=raceID,classID
+              FF._worldQuestCache=nil
+              local found=FF:WorldQuestCandidates({level=20,quests={}},1413,true,{},{})
+              assert(type(found)=="table" and #found<=220)
+              for _,q in ipairs(found) do
+                assert(type(q.id)=="number" and type(q.title)=="string")
+                assert(q.x>=0 and q.x<=100 and q.y>=0 and q.y<=100)
+              end
+            end
+          end
+          -- Isolated gate tests ensure no race/class-restricted quest leaks.
+          FF.worldQuestData={
+            start={[999999]={[1413]={1123456789}}},
+            gates={[999999]=10*1e11+15*1e9+2*1e4+64},
+            names={[999999]="Mock restricted quest"},pre={},preAll={},excl={},chain={},
+            parent={},skill={},minRep={},maxRep={}
+          }
+          race,class=2,7
+          FF._worldQuestCache=nil
+          assert(#FF:WorldQuestCandidates({level=17,quests={}},1413,false,{},{})==1)
+          race,class=1,7
+          FF._worldQuestCache=nil
+          assert(#FF:WorldQuestCandidates({level=17,quests={}},1413,false,{},{})==0)
+          race,class=2,1
+          FF._worldQuestCache=nil
+          assert(#FF:WorldQuestCandidates({level=17,quests={}},1413,false,{},{})==0)
+          FF.worldQuestData=world
+          local professionNames={"Herbalism","Mining","Skinning","Alchemy",
+            "Blacksmithing","Enchanting","Engineering","Leatherworking",
+            "Tailoring","Jewelcrafting","Inscription","Cooking","Fishing",
+            "First Aid","Archaeology"}
+          for _,name in ipairs(professionNames) do
+            local p={name=name,skill=74,cap=75}
+            local entries=FF:ProfessionCoachEntries({professions={primary={p},secondary={}}})
+            assert(#entries==1 and entries[1].step:find("trainer"),"Missing trainer guidance: "..name)
+            assert(type(entries[1].action)=="string" and #entries[1].action>20)
+          end
+          local fallback=FF:ProfessionCoachEntries({professions={primary={{name="Server custom",skill=12,cap=75}},secondary={}}})
+          assert(#fallback==1 and fallback[1].action:find("profession"))
+          print("Verified 72 classic race/class combinations and 16 profession profiles/fallbacks.")
+          LUA
+
       - name: Build CurseForge-ready ZIP
         shell: python
         run: |
