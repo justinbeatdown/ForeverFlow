@@ -10,7 +10,7 @@
 
 *Built for World of Warcraft: Forever*
 
-![Beta](https://img.shields.io/badge/Release-0.5.2%20Beta-DDA544?style=for-the-badge&labelColor=151821)
+![Beta](https://img.shields.io/badge/Release-0.5.3%20Beta-DDA544?style=for-the-badge&labelColor=151821)
 ![WoW Forever](https://img.shields.io/badge/WoW-Forever%20%7C%2016001-DAA520?style=for-the-badge&labelColor=151821)
 ![Manual Play](https://img.shields.io/badge/Gameplay-100%25%20Manual-39A878?style=for-the-badge&labelColor=151821)
 
@@ -49,7 +49,7 @@ You move, fight, gather and sell. **ForeverFlow handles the suggestions.**
 
 <img src="assets/foreverflow-in-game.jpg" width="100%" alt="ForeverFlow dashboard and Live Guide running together in World of Warcraft: Forever" />
 
-<sub>Real gameplay screenshot · v0.5.1 UI before the v0.5.2 logo fix</sub>
+<sub>Real gameplay screenshot · v0.5.1 UI before the v0.5.3 small-icon polish</sub>
 
 </div>
 
@@ -63,7 +63,7 @@ You move, fight, gather and sell. **ForeverFlow handles the suggestions.**
 
 ## 📦 Installation
 
-1. **[Download the v0.5.2 beta ZIP](dist/ForeverFlow_v0.5.2_Beta.zip)** from this repository.
+1. **[Download the v0.5.3 beta ZIP from GitHub Actions](https://github.com/justinbeatdown/ForeverFlow/actions/workflows/package.yml)** (open latest successful run > Artifacts > ForeverFlow-installable), or use the direct test ZIP provided in ChatGPT.
 2. **Exit WoW completely.**
 3. Remove the previous `Interface\AddOns\ForeverFlow` folder if one exists.
 4. Extract the ZIP so this file exists: `Interface\AddOns\ForeverFlow\ForeverFlow.toc`
@@ -99,7 +99,7 @@ ForeverFlow **does not** move your character, fight, cast, loot, gather, buy or 
 
 ## 🧪 Beta status & feedback
 
-**Current build: v0.5.2 beta.**
+**Current build: v0.5.3 beta.**
 
 - In-game UI, session tracking and quest recommendation features have been tested during development.
 - Automatic quest watch/focus and compatibility with other navigation addons need more real-client validation.
@@ -117,7 +117,7 @@ Found a bug? Open an **[issue](../../issues/new)** and include your Forever clie
 
 ## 🔧 Development notes
 
-The full addon source, including game-ready textures, is tracked under [ForeverFlow/](ForeverFlow/). The **complete installable beta**, including all textures, is available in [dist/ForeverFlow_v0.5.2_Beta.zip](dist/ForeverFlow_v0.5.2_Beta.zip). The repository is private while the project is in beta.
+The full addon source, including game-ready textures, is tracked under [ForeverFlow/](ForeverFlow/). The complete installable beta is built on GitHub Actions as a downloadable artifact; compact icon textures are generated from the approved original artwork by `build_icons.py`. The repository is private while the project is in beta.
 
 ## 📄 License & attribution
 
