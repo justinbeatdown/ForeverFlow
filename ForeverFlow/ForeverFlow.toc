@@ -2,8 +2,8 @@
 ## Title: |cffffbf6bForeverFlow|r - Smart Manual Autopilot
 ## Notes: A plug-and-play manual autopilot for quests, professions, gold and progression on WoW: Forever.
 ## Author: ForeverFlow
-## Version: 0.5.2
-## IconTexture: Interface\AddOns\ForeverFlow\Media\OfficialCircle.tga
+## Version: 0.5.3
+## IconTexture: Interface\AddOns\ForeverFlow\Media\MinimapIconRound.tga
 ## SavedVariables: ForeverFlowDB
 ## SavedVariablesPerCharacter: ForeverFlowCharDB
 
