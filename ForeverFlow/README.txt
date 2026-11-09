@@ -1,4 +1,4 @@
-ForeverFlow v0.5.4 | WoW: Forever (Interface 16001)
+ForeverFlow v0.5.5 | WoW: Forever (Interface 16001)
 
 Install:
 1. Exit the game completely.
@@ -24,5 +24,8 @@ Nothing posts data outside of WoW.
 
 Guide controls: left-click the small v/^ button to expand or compact the ribbon; right-click to collapse it to the title bar.
 
-0.5.4 RC: /flow where (quest hint), /flow why (ranking factors), /flow status (diagnostics).
+0.5.5 RC: /flow where (quest hint), /flow why (ranking factors), /flow status (diagnostics).
 Quest-map coordinates are client-provided hints; not guaranteed objective locations.
+
+0.5.5 commands: /flow stats, /flow pin, /flow unpin, /flow pace
+Leveling pace is an estimate based on current session XP and appears after a reliable sample.

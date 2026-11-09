@@ -266,6 +266,27 @@ function FF:GoldHudSummary(s)
     return "GOLD / "..self:MoneyText(earned-spent,true).." net | "..turns.." quests done"
 end
 
+-- Session pace is informational, not a promised leveling route.
+-- A 5-minute sample and at least 100 XP avoids wildly unstable ETAs.
+function FF:LevelingPace(snapshot)
+    local elapsed=math.max(0,tonumber(snapshot and snapshot.elapsed) or 0)
+    local gained=math.max(0,tonumber(snapshot and snapshot.session and snapshot.session.xpEarned) or 0)
+    local maximum=tonumber(snapshot and snapshot.xpMax) or 0
+    local current=tonumber(snapshot and snapshot.xp) or 0
+    local enough=elapsed>=300 and gained>=100
+    local rate=enough and math.floor((gained*3600/elapsed)+.5) or 0
+    local eta="not enough data"
+    if enough and maximum>current and rate>0 then
+        local minutes=math.ceil(((maximum-current)/rate)*60)
+        if minutes<1 then minutes=1 end
+        if minutes>1440 then eta="over 24h at this pace"
+        elseif minutes>=60 then eta=string.format("~%dh %02dm",math.floor(minutes/60),minutes%60)
+        else eta="~"..minutes.."m" end
+    elseif maximum<=0 then eta="XP unavailable"
+    elseif maximum<=current then eta="level ready" end
+    return {rate=rate,eta=eta,reliable=enough and rate>0}
+end
+
 function FF:CollectSnapshot()
     local level=num(safeCall(UnitLevel,"player"),1)
     local name,tag=safeCall(UnitClass,"player")

@@ -1,3 +1,14 @@
+v0.5.5 test checklist (beta)
+[ ] New leveling tab pace reads "calculating" in first 5 minutes.
+[ ] After 5 min and >=100 XP, XP/hour and next-level ETA appear.
+[ ] /flow stats shows session totals; /flow pace toggles pace text.
+[ ] /flow pin retains current recommendation even if another quest scores higher.
+[ ] /flow unpin resumes auto selection and keeps auto-follow working.
+[ ] Leveling tab PIN -> UNPIN/RESUME AUTO works.
+[ ] Turning in a quest automatically advances without extra clicks.
+[ ] Classic UI / minimap logo / dynamic gold footer unchanged.
+[ ] No Lua errors with /console scriptErrors 1.
+
 v0.5.4 RC2 dynamic gold footer checks
 [ ] In expanded Live Guide, Gold/Herbs line shows +0 initially and changes as herbs or ore are added to bags.
 [ ] Confirm reported material additions reflect bag increases (bank transfers may count).

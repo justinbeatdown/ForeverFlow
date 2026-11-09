@@ -1,6 +1,6 @@
--- ForeverFlow 0.5.4 / player-first HUD. UI and suggestions only: no movement, combat or selling automation.
+-- ForeverFlow 0.5.5 / player-first HUD. UI and suggestions only: no movement, combat or selling automation.
 local addonName, FF = ...
-FF.version = "0.5.4"
+FF.version = "0.5.5"
 FF.addon = addonName or "ForeverFlow"
 FF.media = "Interface\\AddOns\\ForeverFlow\\Media\\"
 FF.colors = {
@@ -29,6 +29,7 @@ function FF:InitDB()
     -- A genuinely small always-on HUD is the default for this HUD redesign.
     if not c.hudRibbonUpgrade then c.hudMinimal=true; c.hudRibbonUpgrade=true end
     if c.autoFollow==nil then c.autoFollow=true end
+    if c.showPace==nil then c.showPace=true end
     if c.hudMinimal==nil then c.hudMinimal=false end
     if not c.liveGuideUpgrade then
         -- On first install/upgrade, make the small Live Guide the default experience.
@@ -167,6 +168,36 @@ function FF:SetPriority(priority)
     if priority~="gold" and priority~="level" then priority="balanced" end
     self.char.priority=priority; self.char.skippedQuestID=0
     self:Refresh()
+end
+function FF:PinCurrentQuest()
+    local quest=self.plan and self.plan.quest
+    if not quest or type(quest.id)~="number" then
+        self:Message("No suggested quest available to pin.")
+        return
+    end
+    self.char.manualQuestID=quest.id
+    self.char.skippedQuestID=0
+    self:Message("Pinned: "..tostring(quest.title)..". Use /flow unpin to resume automatic selection.")
+    self:Refresh()
+end
+function FF:UnpinCurrentQuest()
+    self.char.manualQuestID=0
+    self.char.skippedQuestID=0
+    self.stableQuestID=nil
+    self:Message("Automatic quest selection restored.")
+    self:Refresh()
+end
+function FF:SessionSummary()
+    local snapshot=self.snapshot
+    if not snapshot or not snapshot.session then
+        self:Message("Session data unavailable.")
+        return
+    end
+    local session=snapshot.session
+    local pace=self:LevelingPace(snapshot)
+    self:Message("Session: "..math.floor((snapshot.elapsed or 0)/60).." min | XP +"..math.floor(session.xpEarned or 0).." | Quests "..tostring(session.questTurns or 0))
+    self:Message("XP/hr: "..(pace.reliable and tostring(pace.rate) or "warming up").." | Level ETA: "..pace.eta)
+    self:Message("Net gold: "..self:MoneyText((session.earned or 0)-(session.spent or 0),true).." | Materials +"..tostring(session.materials or 0))
 end
 function FF:SkipQuest()
     if self.plan and self.plan.quest and self.plan.quest.id then
@@ -319,7 +350,13 @@ SlashCmdList.FOREVERFLOW=function(input)
     elseif tabs[cmd] then FF:ShowTab(cmd); FF.window:Show(); FF.char.visible=true; FF:Refresh()
     elseif cmd=="level" or cmd=="gold" or cmd=="balanced" then FF:SetPriority(cmd)
     elseif cmd=="priority" then FF:SetPriority(arg)
-    elseif cmd=="auto" then FF:ChooseQuest(0)
+    elseif cmd=="auto" or cmd=="unpin" then FF:UnpinCurrentQuest()
+    elseif cmd=="pin" then FF:PinCurrentQuest()
+    elseif cmd=="stats" or cmd=="session" then FF:SessionSummary()
+    elseif cmd=="pace" then
+        FF.char.showPace=not FF.char.showPace
+        FF:Message("Leveling pace display: "..(FF.char.showPace and "ON" or "OFF"))
+        FF:Refresh()
     elseif cmd=="next" then FF:SkipQuest()
     elseif cmd=="map" then FF:MapAction()
     elseif cmd=="track" then FF:TrackQuest()
@@ -354,7 +391,8 @@ SlashCmdList.FOREVERFLOW=function(input)
     elseif cmd=="help" then
         FF:Message("/flow dashboard  |  /flow guide toggle HUD  |  /flow hud tiny|normal  |  /flow scale 0.8-1.2")
         FF:Message("/flow priority level|gold|balanced  |  /flow follow on|off  |  /flow focus")
-        FF:Message("/flow map  |  /flow track  |  /flow auto  |  /flow hud tiny|normal")
+        FF:Message("/flow map  |  /flow track  |  /flow pin  |  /flow unpin  |  /flow next")
+        FF:Message("/flow stats  |  /flow pace (toggle XP estimate)  |  /flow hud tiny|normal")
         FF:Message("/flow leveling|skills|character|settings  |  /flow where  |  /flow why  |  /flow goldstatus  |  /flow status  |  /flow resetpos")
     else FF:Message("Unknown command. Type /flow help.") end
 end

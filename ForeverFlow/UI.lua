@@ -1,4 +1,4 @@
--- ForeverFlow 0.5.4 UI preview | original classic fantasy bronze/black visual theme.
+-- ForeverFlow 0.5.5 UI | original classic fantasy bronze/black visual theme.
 local _,FF=...
 local C=FF.colors
 local W,H=652,720
@@ -138,7 +138,8 @@ function FF:MakeLeveling(p)
     local intro=panel(p,14,9,624,107)
     heading(intro,"QUEST ROUTE: SELECTED FROM YOUR LIVE QUEST LOG")
     v.summary=label(intro,"",12,32,596,19,13,C.white)
-    v.description=label(intro,"",12,57,596,44,11,C.muted)
+    v.description=label(intro,"",12,53,596,27,11,C.muted)
+    v.pace=label(intro,"",12,82,596,19,11,C.gold)
     local list=panel(p,14,127,624,305)
     heading(list,"QUEST SHORTLIST  /  CHOOSE A ROUTE")
     v.rows={}
@@ -151,8 +152,8 @@ function FF:MakeLeveling(p)
         v.rows[i]=r
     end
     local foot=panel(p,14,443,624,56)
-    button(foot,"AUTO PICK BEST QUEST",12,11,294,33,function() FF:ChooseQuest(0) end)
-    button(foot,"PIN QUEST ON MAP",318,11,294,33,function() FF:MapAction() end)
+    v.auto=button(foot,"AUTO QUEST SELECTION",12,11,294,33,function() FF:UnpinCurrentQuest() end)
+    button(foot,"QUEST MAP / WAYPOINT",318,11,294,33,function() FF:MapAction() end)
     return v
 end
 function FF:MakeGold(p)
@@ -265,7 +266,7 @@ function FF:MakeSettings(p)
     heading(info,"HOW TO USE FOREVERFLOW")
     label(info,"1   Log in: ForeverFlow suggests a quest and requests tracking.",12,35,590,27,13,C.white)
     label(info,"2   Follow the compact HUD. Expand it for more controls.",12,73,458,42,13,C.white)
-    label(info,"3   /flow where explains hints; /flow why explains the choice.",12,115,458,47,13,C.white)
+    label(info,"3   /flow stats shows XP pace; /flow pin or unpin controls selection.",12,115,458,47,13,C.white)
     icon(info,"ForeverFlowLogo.tga",489,45,121,121)
     label(info,"No automatic movement/combat. Quest focus uses the native client; if unavailable, the map button remains available.",12,169,590,48,11,C.muted)
     return v
@@ -518,11 +519,14 @@ function FF:UpdateUI()
     v.statusC:SetText("Money: "..self:MoneyText(s.money))
     v.statusD:SetText("Durability: "..readable(s.durability))
     v.goldTip:SetText(shorten(s.goldTip,131))
-    v.progress:SetText("THIS SESSION:  "..elapsedText(s.elapsed).."  |  XP +"..math.floor(s.session.xpEarned or 0).."  |  Quests "..s.session.questTurns.."  |  Materials "..s.session.materials)
+    v.progress:SetText("THIS SESSION: "..elapsedText(s.elapsed).." | XP +"..math.floor(s.session.xpEarned or 0).." | Quests "..s.session.questTurns.." | Materials "..s.session.materials)
 
     v=self.views.leveling
     v.summary:SetText((s.questCount or "?").." quests  |  "..s.questComplete.." ready  |  "..(self.char.manualQuestID>0 and "manual quest pinned" or "auto selected"))
-    v.description:SetText("Suggestions use live quest progress, zone, level and client distance. Coordinates are quest hints, not verified mob locations. Try /flow why.")
+    v.description:SetText("Live quest-log suggestions. Map hints aren't verified mob locations. /flow why explains selection; PIN holds a quest until unpinned.")
+    local pace=self:LevelingPace(s)
+    v.pace:SetText(self.char.showPace and ("SESSION PACE: "..(pace.reliable and (pace.rate.." XP/hr") or "calculating after 5 minutes").."  |  NEXT LEVEL: "..pace.eta) or "SESSION PACE: hidden (/flow pace)")
+    v.auto.text:SetText(self.char.manualQuestID>0 and "UNPIN / RESUME AUTO" or "AUTO QUEST SELECTION")
     for i=1,5 do
         local quest=s.quests[i];local row=v.rows[i]
         if quest then

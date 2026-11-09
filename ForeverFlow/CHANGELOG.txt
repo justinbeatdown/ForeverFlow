@@ -1,3 +1,15 @@
+ForeverFlow 0.5.5 (Leveling pace + quest controls)
+- Added session XP/hour and an estimated time to the next level using earned XP and
+  current level progress. Estimates appear after at least 5 minutes and 100 XP;
+  they are not predictions of future quest rewards or downtime.
+- Added /flow stats (/flow session): XP, quests completed, net gold and materials.
+- Added /flow pin and /flow unpin for convenient current-quest preference control.
+- Leveling tab now displays session pace and a clearer unpin/resume-auto button.
+- Added /flow pace to show/hide the estimate while preserving other settings.
+- Improved leveling tab text and kept the classic bronze UI and approved logo.
+- All actions remain manual: no movement, combat, quest auto-completion or selling.
+- WoW Forever in-game validation is required before publishing this release.
+
 ForeverFlow 0.5.4 — Classic UI, quest guidance and dynamic Gold HUD
 - Replaced the static Gold/Herbs reminder with session-aware material gains and net coin changes.
 - Updates automatically using existing inventory/money event handling; bag warnings and low durability take priority.
