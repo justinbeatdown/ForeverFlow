@@ -1,6 +1,6 @@
 -- ForeverFlow 0.5.6-beta1 / player-first HUD. UI and suggestions only: no movement, combat or selling automation.
 local addonName, FF = ...
-FF.version = "0.5.6-beta1"
+FF.version = "0.5.6-beta2"
 FF.addon = addonName or "ForeverFlow"
 FF.media = "Interface\\AddOns\\ForeverFlow\\Media\\"
 FF.colors = {
@@ -59,6 +59,8 @@ function FF:InitDB()
     if type(c.savedDiscoveries)~="table" then c.savedDiscoveries={} end
     if type(c.skippedDiscoveries)~="table" then c.skippedDiscoveries={} end
     if type(c.seenDiscoveries)~="table" then c.seenDiscoveries={} end
+    c.recipeFlowPage=math.max(1,math.floor(numberOr(c.recipeFlowPage,1)))
+    c.recipeFlowSelected=math.max(1,math.floor(numberOr(c.recipeFlowSelected,1)))
     if c.compact==nil then c.compact=false end -- migration from v0.2
 end
 
@@ -424,7 +426,7 @@ local optional={"PLAYER_LEVEL_UP","PLAYER_XP_UPDATE","QUEST_LOG_UPDATE","QUEST_A
  "QUEST_REMOVED","QUEST_TURNED_IN","BAG_UPDATE_DELAYED","PLAYER_MONEY",
  "UPDATE_INVENTORY_DURABILITY","PLAYER_EQUIPMENT_CHANGED","SKILL_LINES_CHANGED",
  "ZONE_CHANGED","ZONE_CHANGED_NEW_AREA","PLAYER_REGEN_ENABLED","SPELLS_CHANGED",
- "GOSSIP_SHOW","QUEST_GREETING"}
+ "GOSSIP_SHOW","QUEST_GREETING","TRADE_SKILL_SHOW","TRADE_SKILL_UPDATE","CRAFT_SHOW","CRAFT_UPDATE"}
 FF.skippedEvents={}
 for _,event in ipairs(optional) do
     if not pcall(events.RegisterEvent,events,event) then
@@ -447,6 +449,11 @@ events:SetScript("OnEvent",function(_,event,arg1)
         return
     end
     if not FF.char or not FF.session then return end
+    if event=="TRADE_SKILL_SHOW" or event=="TRADE_SKILL_UPDATE" then
+        if FF.CaptureRecipeFlow then FF:CaptureRecipeFlow("trade") end
+    elseif event=="CRAFT_SHOW" or event=="CRAFT_UPDATE" then
+        if FF.CaptureRecipeFlow then FF:CaptureRecipeFlow("craft") end
+    end
     if event=="GOSSIP_SHOW" or event=="QUEST_GREETING" then
         if FF.RememberNearbyQuests then FF:RememberNearbyQuests() end
     end

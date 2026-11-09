@@ -1,3 +1,10 @@
+v0.5.6 Beta 2 (development, not public)
+- Recipe Flow reads actual known crafting recipes and reagent counts from native TradeSkill/Craft windows.
+- Recipe browser supports selecting recipes, native item hover tooltips where links are provided, 4 reagent rows, and refresh/pagination.
+- Gold surfaces a selected recipe's missing reagents as a shopping reminder (without invented prices).
+- Professions without a crafting API continue using the skill/rank-aware profession coach.
+- This is not a verified all-recipes offline guide, auction pricing, or automated crafting.
+
 0.5.6 beta: Added an in-addon profession leveling coach for all client-detected professions; corrected quest cache invalidation and coverage reporting.
 0.5.6 beta: Full-world quest data expansion and profession leveling coach (client-aware, no invented recipe unlocks).
 v0.5.6-beta1 - World Quest Coverage (TEST RELEASE)
