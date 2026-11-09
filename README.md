@@ -43,6 +43,16 @@ You move, fight, gather and sell. **ForeverFlow handles the suggestions.**
 | 🎛️ | **Playstyle selection** | Balanced, Fast Leveling or More Gold. |
 | 🎨 | **Custom fantasy UI** | Gold-and-charcoal dashboard, branded minimap launcher and collapsible HUD. |
 
+<div align="center">
+
+### See it in-game
+
+<img src="assets/foreverflow-in-game.jpg" width="100%" alt="ForeverFlow dashboard and Live Guide running together in World of Warcraft: Forever" />
+
+<sub>Real gameplay screenshot · v0.5 beta interface</sub>
+
+</div>
+
 ## 🖥️ Two ways to use ForeverFlow
 
 **The dashboard** is your planning hub: current recommendation, quick actions, playstyle, character snapshot and progression details.
@@ -53,7 +63,7 @@ You move, fight, gather and sell. **ForeverFlow handles the suggestions.**
 
 ## 📦 Installation
 
-1. Download the **v0.5.1 beta** addon ZIP.
+1. **[Download the v0.5.1 beta ZIP](dist/ForeverFlow_v0.5.1_Beta.zip)** from this repository.
 2. **Exit WoW completely.**
 3. Remove the previous `Interface\AddOns\ForeverFlow` folder if one exists.
 4. Extract the ZIP so this file exists: `Interface\AddOns\ForeverFlow\ForeverFlow.toc`
@@ -104,6 +114,10 @@ Found a bug? Open an **[issue](../../issues/new)** and include your Forever clie
 - [ ] HUD polish, scaling and placement presets
 - [ ] Broader in-game compatibility and regression testing
 - [ ] Community-requested quality-of-life features
+
+## 🔧 Development notes
+
+The individual Lua files and addon manifest are tracked under [ForeverFlow/](ForeverFlow/). The **complete test build**, including all game-ready texture assets, is available in [dist/ForeverFlow_v0.5.1_Beta.zip](dist/ForeverFlow_v0.5.1_Beta.zip). The repository is private while the project is in beta.
 
 ## 📄 License & attribution
 
