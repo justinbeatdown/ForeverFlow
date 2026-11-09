@@ -132,8 +132,19 @@ function FF:MakeToday(p)
     heading(summary,"WHAT TO DO AFTER THIS QUEST")
     v.goldTip=label(summary,"",12,32,596,31,11,C.white)
     v.routePickups=button(summary,"PICKUPS",443,8,82,22,function() FF:OpenRouteDiscovery() end)
-    v.routeExplain=button(summary,"WHY?",531,8,80,22,function() FF:DescribeRoute() end)
-    v.progress=label(summary,"",12,67,596,16,10,C.gold)
+    v.routeExplain=button(summary,"WHY?",531,8,80,22,function() FF:ToggleRouteDetails() end)
+    v.progress=label(summary,"",12,66,596,14,10,C.gold)
+    -- An in-window explanation, not four noisy chat messages. Deliberately
+    -- overlays the lower panels, preserving the existing 720px window size.
+    local details=panel(p,14,259,624,240)
+    details:SetFrameLevel(p:GetFrameLevel()+20)
+    heading(details,"WHY THIS ROUTE?  /  EVIDENCE & NEXT STEPS")
+    v.detailsKind=label(details,"",12,37,590,19,12,C.gold)
+    v.detailsReason=label(details,"",12,65,590,55,13,C.white)
+    v.detailsNext=label(details,"",12,130,590,55,12,C.white)
+    v.detailsEvidence=label(details,"",12,194,575,31,11,C.muted)
+    button(details,"CLOSE",531,7,80,22,function() FF:ToggleRouteDetails(false) end)
+    details:Hide();v.detailsPanel=details
     return v
 end
 function FF:MakeLeveling(p)
@@ -541,6 +552,30 @@ function FF:ShowTab(name)
     self:Refresh()
 end
 
+function FF:ToggleRouteDetails(wanted)
+    local v=self.views and self.views.today
+    if not v or not v.detailsPanel then return end
+    local show=(wanted==nil) and not v.detailsPanel:IsShown() or wanted==true
+    v.detailsPanel:SetShown(show)
+    if show then self:UpdateRouteDetails() end
+end
+function FF:UpdateRouteDetails()
+    local v=self.views and self.views.today
+    if not v or not v.detailsPanel then return end
+    local a=self.routeAdvice
+    if not a then
+        v.detailsKind:SetText("Route information not available")
+        v.detailsReason:SetText("Please choose an active quest or open Discover Quests.")
+        v.detailsNext:SetText("")
+        v.detailsEvidence:SetText("Evidence: none")
+        return
+    end
+    v.detailsKind:SetText(shorten(a.kind.."  /  "..tostring(a.title or ""),94))
+    v.detailsReason:SetText(tostring(a.reason or ""))
+    v.detailsNext:SetText(tostring(a.next or ""))
+    v.detailsEvidence:SetText("EVIDENCE: "..tostring(a.confidence or "GENERAL TIP").."  |  Offline pickups / prerequisites not verified")
+end
+
 function FF:UpdateUI()
     local s=self.snapshot;local plan=self.plan
     if not s or not plan or not self.views then return end
@@ -580,6 +615,7 @@ function FF:UpdateUI()
     v.goldTip:SetText(self.routeAdvice and shorten(self.routeAdvice.reason,128) or shorten(s.goldTip,131))
     local route=self.routeAdvice
     v.progress:SetText(route and shorten(route.next,113) or ("THIS SESSION: "..elapsedText(s.elapsed).." | XP +"..math.floor(s.session.xpEarned or 0)))
+    if v.detailsPanel and v.detailsPanel:IsShown() then self:UpdateRouteDetails() end
 
     v=self.views.leveling
     local discoverMode=self.char.discoverView==true

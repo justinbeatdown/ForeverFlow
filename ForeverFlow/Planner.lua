@@ -32,13 +32,29 @@ function FF:BuildRouteAdvice(s,plan)
             if not candidate.nearby and not travelPick then travelPick=candidate end
         end
     end
+    -- Prefer already accepted, same-zone quests over unverified pickups.
+    -- A completed quest is a useful follow-up, but only if we actually know
+    -- its status from the live log. Never assert a turn-in NPC coordinate.
+    local activeFollowup=nil
+    for _,candidate in ipairs(s.quests or {}) do
+        if candidate.id and (not q or candidate.id~=q.id) and
+            (candidate.zoneMatch or candidate.near) and
+            (not candidate.level or candidate.level<=s.level+3) then
+            if not activeFollowup or (candidate.done and not activeFollowup.done) then
+                activeFollowup=candidate
+            end
+        end
+    end
     local later=savedPick or localPick or travelPick
-    if later then
+    if activeFollowup then
+        advice.next="Afterwards: "..(activeFollowup.done and "turn in " or "continue ")..short(activeFollowup.title,45).." (already in your quest log)."
+    elseif later then
         advice.next="Afterwards: "..(later.saved and "your saved pickup " or "check ")..short(later.title,31).." ("..(later.nearby and "local" or "travel to "..tostring(later.mapName or "another zone")).."; pickup unverified)."
     else
-        advice.next="Afterwards: open Discover Quests to review available reported pickups."
+        advice.next="Afterwards: open Discover Quests to review reported quest pickups."
     end
     advice.pickup=later
+    advice.activeFollowup=activeFollowup
     if q then
         local have,needed=questProgress(q)
         advice.kind=q.done and "TURN IN" or "FINISH CURRENT QUEST"

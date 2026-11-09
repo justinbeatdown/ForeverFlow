@@ -1,3 +1,16 @@
+ForeverFlow 0.5.5 - Route Intelligence Release
+
+- New NEXT BEST ACTION planner uses live objective progress, turn-ins, bag space and durability.
+- WHY? opens an in-window explanation with evidence and follow-up steps; no repeated chat output from the UI button.
+- After current quest, prefer suitable active quests in the same zone before speculative offline pickups.
+- Discover Quests includes a limited offline reference for The Barrens and Stonetalon, with confidence warnings.
+- Save, Skip, Browse Zones, pagination and reported map coordinates; optional TomTom waypoints.
+- Leveling pace and session metrics; interactive Gold and Skills utility controls.
+- Classic bronze UI and auto-follow retained.
+
+Quest pickup records and prerequisites are historical/reported and may not exactly match the Forever server.
+No automated movement, combat, quest acceptance or selling.
+
 v0.5.5 Beta 4c - clearer cross-zone quest discovery
 - Label travel-required quests explicitly; when the current zone has no suitable nearby pickups, show TRAVEL PLAN rather than presenting another zone as local.
 - Display local/elsewhere counts, zone badge per quest, and stable list numbering across pages.
