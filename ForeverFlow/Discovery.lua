@@ -142,7 +142,10 @@ function FF:FindDiscoveries(snapshot, force)
             local match=(area==zoneKey)
             if (match or includeOtherZone or saved[id]) and (side=="B" or not playerFaction or side==playerFaction) then
                 local zone=(self.catalogZones or {})[area]
-                if zone and level>=minLevel and (questLevel<=level+7 or saved[id]) then
+                -- Ordinary recommendations should be doable now, not seven levels ahead.
+                -- Saved quests stay visible, but high-level group quests must not crowd the plan.
+                local soloSuitable=(flags~="elite" and questLevel<=level+2)
+                if zone and level>=minLevel and (soloSuitable or saved[id] or (browseAll and questLevel<=level+5)) then
                     add({id=id,title=name,areaID=area,mapID=zone.uiMapID,
                         mapName=zone.name,level=questLevel,minLevel=minLevel,
                         npc=npc,x=x,y=y,flags=flags,source="offline",
@@ -201,6 +204,9 @@ function FF:FindDiscoveries(snapshot, force)
     end
     -- If the present area truly has nothing useful, fall back to the other
     -- covered leveling hub rather than a dead 0-results view.
+    -- Stonetalon's first Horde quests are often above a new level-17 player's
+    -- range. Prefer actionable Barrens quests over displaying only red/orange
+    -- chains or leaving the panel empty.
     if not next(byID) and not browseAll then catalogPass(true) end
     local px,py=playerPosition(mapID)
     for _,q in pairs(byID) do
@@ -235,6 +241,19 @@ function FF:FindDiscoveries(snapshot, force)
         if a.score~=b.score then return a.score>b.score end
         return a.id<b.id
     end)
+    -- Some quest chains have distinct IDs for identical titles. Display one
+    -- useful recommendation per quest name, favoring a solo/level-appropriate
+    -- entry; never take up two UI slots with the same title.
+    local unique,seenTitle={},{}
+    for _,q in ipairs(list) do
+        local key=type(q.title)=="string" and q.title:lower():gsub("[^%w]","") or tostring(q.id)
+        if key=="" then key=tostring(q.id) end
+        if not seenTitle[key] then
+            seenTitle[key]=true
+            unique[#unique+1]=q
+        end
+    end
+    list=unique
     self.discoveredQuests=list
     local info=(#list>0 and (#list.." possible quests: offline pickup records + client hints; check NPC / chain access")
         or "No matching quest starts in this area at your level. Try BROWSE ZONES or talk to a quest giver.")
