@@ -1,0 +1,57 @@
+name: Bug report
+description: Report a ForeverFlow issue in WoW Forever
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for helping improve ForeverFlow! Please provide only game/addon details; never share account credentials."
+  - type: input
+    id: version
+    attributes:
+      label: ForeverFlow version
+      placeholder: "0.5.2"
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: WoW Forever client version
+      placeholder: "1.60.1"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Enable addon\n2. Accept/finish quest\n3. Observe Live Guide"
+    validations:
+      required: true
+  - type: textarea
+    id: errors
+    attributes:
+      label: Lua error or /flow debug output (if available)
+      description: "Enable /console scriptErrors 1, then /reload."
+      render: text
+  - type: textarea
+    id: addons
+    attributes:
+      label: Other quest or navigation addons
+      placeholder: "Questie, TomTom, etc."
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshots
+      description: "Drag screenshots here; hide personal information."
