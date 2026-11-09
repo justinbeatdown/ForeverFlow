@@ -1,3 +1,8 @@
+v0.5.5 Beta 4c - clearer cross-zone quest discovery
+- Label travel-required quests explicitly; when the current zone has no suitable nearby pickups, show TRAVEL PLAN rather than presenting another zone as local.
+- Display local/elsewhere counts, zone badge per quest, and stable list numbering across pages.
+- Existing filtering, classic UI and auto quest following preserved.
+
 ForeverFlow 0.5.5 Beta 4 — Discover Quests Offline Edition (test build)
 - Offline quest starter catalog with 70 reported pickup records across The Barrens and Stonetalon Mountains (Horde, Both, and Alliance entries; faction-aware filtering).
 - Quest recommendations now work without client quest-line APIs or talking to the quest giver first.
@@ -96,3 +101,11 @@ ForeverFlow 0.5.5 Beta 3 - Discover Quests (test build)
 - New commands: /flow discover and /flow discoverreset.
 - External quest databases excluded pending licensing review and in-client validation.
 - Game API coverage is client-dependent; quest discovery is best-effort, not a complete route database.
+
+0.5.5-beta5 (Route Intelligence testing build)
+- Added Next Best Action planner using live quest objective progress, completion state, character inventory/durability and optional reported pickup candidates.
+- Focus on finishing in-progress quests before recommending cross-zone detours; explicitly label pickup uncertainty.
+- Today card now displays route rationale and next suggested step; Leveling My Quests shows active plan, reasoning and follow-up action.
+- Added /flow route (full reasoning), /flow routepickups (open discovery) and WHY? button on Today.
+- Preserved auto quest following, pinned quests, classic visual style and Gold/Skills interactions.
+- No invented XP rewards, travel ETA, quest eligibility, automatic character control or guaranteed NPC locations.

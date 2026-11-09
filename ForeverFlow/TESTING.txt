@@ -117,3 +117,12 @@ BETA 4 / OFFLINE QUEST DISCOVERY TEST
 7. If UI errors, /console scriptErrors 1 and report the error/screenshot.
 8. Confirm no unexpected map window closing, bad frame clipping or taint.
 
+
+Beta 4c tests: Stonetalon Lv17 Horde with zero local matches should show TRAVEL PLAN and Barrens zone labels. Browse Zones shows clear travel labels. Verify local quest title does not clip into buttons.
+
+Beta 5 Route Intelligence in-game test:
+- At level 17 Stonetalon, with Goblin Invaders 3/15, Today and My Quests should say finish current active quest; /flow route explains evidence.
+- Change objectives and ensure progress text changes after quest log updates; turn-in should hand off to the next recommended quest.
+- Completed quests should suggest turn-in; 0-2 bag slots should take priority; very low durability prompts repair.
+- Browse Discover quests; any Barrens pickup must be clearly labelled as a travel option and unverified.
+- Click WHY? in Today; verify /flow route and /flow routepickups. Check every tab for clipping and errors.

@@ -52,3 +52,5 @@ These are candidate quests; prerequisites and actual NPC offers may differ
 in Forever. "REPORTED PICKUP" does not mean currently obtainable. Other areas
 retain the earlier client-observed discovery mode until their catalog expands.
 Data provenance and quality limitations: DATA_SOURCES.txt.
+
+New beta5: /flow route prints your current quest/action reasoning, /flow routepickups opens Discover Quests. Unverified pickup data is never shown as guaranteed.

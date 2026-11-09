@@ -1,6 +1,6 @@
 -- ForeverFlow 0.5.5 / player-first HUD. UI and suggestions only: no movement, combat or selling automation.
 local addonName, FF = ...
-FF.version = "0.5.5"
+FF.version = "0.5.5-beta5"
 FF.addon = addonName or "ForeverFlow"
 FF.media = "Interface\\AddOns\\ForeverFlow\\Media\\"
 FF.colors = {
@@ -142,6 +142,10 @@ function FF:Refresh()
     local okPlan,plan=pcall(self.ChoosePlan,self,snapshot)
     if not okPlan then self.lastError=tostring(plan); return end
     self.plan=plan
+    if self.BuildRouteAdvice then
+        local good,advice=pcall(self.BuildRouteAdvice,self,snapshot,plan)
+        if good then self.routeAdvice=advice else self.lastRouteError=tostring(advice) end
+    end
     -- This runs only when the recommended quest or its objective changes; it is
     -- NOT a 6-second reassertion that would fight a user's manual map choice.
     if self.SyncRecommendedQuest then self:SyncRecommendedQuest(plan) end
@@ -358,6 +362,8 @@ SlashCmdList.FOREVERFLOW=function(input)
     elseif cmd=="priority" then FF:SetPriority(arg)
     elseif cmd=="auto" or cmd=="unpin" then FF:UnpinCurrentQuest()
     elseif cmd=="pin" then FF:PinCurrentQuest()
+    elseif cmd=="route" or cmd=="plan" then FF:DescribeRoute()
+    elseif cmd=="routepickups" then FF:OpenRouteDiscovery()
     elseif cmd=="discover" then
         FF.char.discoverView=true
         FF.window:Show();FF.char.visible=true;FF:ShowTab("leveling")
@@ -406,7 +412,8 @@ SlashCmdList.FOREVERFLOW=function(input)
         FF:Message("/flow priority level|gold|balanced  |  /flow follow on|off  |  /flow focus")
         FF:Message("/flow map  |  /flow track  |  /flow pin  |  /flow unpin  |  /flow next")
         FF:Message("/flow stats  |  /flow pace (toggle XP estimate)  |  /flow hud tiny|normal")
-        FF:Message("/flow discover  |  /flow discoverreset (revisit skipped quests)")
+        FF:Message("/flow route (explain the next best action) | /flow routepickups | /flow discover")
+        FF:Message("/flow discoverreset (revisit skipped quests)")
         FF:Message("/flow leveling|skills|character|settings  |  /flow where  |  /flow why  |  /flow goldstatus  |  /flow status  |  /flow resetpos")
     else FF:Message("Unknown command. Type /flow help.") end
 end

@@ -129,8 +129,10 @@ function FF:MakeToday(p)
     v.statusC=label(status,"",12,59,290,18,12,C.white)
     v.statusD=label(status,"",310,59,300,18,12,C.white)
     local summary=panel(p,14,417,624,82)
-    heading(summary,"EARN GOLD WHILE YOU LEVEL")
+    heading(summary,"WHAT TO DO AFTER THIS QUEST")
     v.goldTip=label(summary,"",12,32,596,31,11,C.white)
+    v.routePickups=button(summary,"PICKUPS",443,8,82,22,function() FF:OpenRouteDiscovery() end)
+    v.routeExplain=button(summary,"WHY?",531,8,80,22,function() FF:DescribeRoute() end)
     v.progress=label(summary,"",12,67,596,16,10,C.gold)
     return v
 end
@@ -575,8 +577,9 @@ function FF:UpdateUI()
     v.statusB:SetText("Bags: "..(s.bagFree and (s.bagFree.."/"..s.bagTotal.." free") or "unavailable"))
     v.statusC:SetText("Money: "..self:MoneyText(s.money))
     v.statusD:SetText("Durability: "..readable(s.durability))
-    v.goldTip:SetText(shorten(s.goldTip,131))
-    v.progress:SetText("THIS SESSION: "..elapsedText(s.elapsed).." | XP +"..math.floor(s.session.xpEarned or 0).." | Quests "..s.session.questTurns.." | Materials "..s.session.materials)
+    v.goldTip:SetText(self.routeAdvice and shorten(self.routeAdvice.reason,128) or shorten(s.goldTip,131))
+    local route=self.routeAdvice
+    v.progress:SetText(route and shorten(route.next,113) or ("THIS SESSION: "..elapsedText(s.elapsed).." | XP +"..math.floor(s.session.xpEarned or 0)))
 
     v=self.views.leveling
     local discoverMode=self.char.discoverView==true
@@ -596,9 +599,17 @@ function FF:UpdateUI()
         v.pageLabel:SetText("PAGE "..page.." / "..pages.."  |  "..#suggested.." MATCHES")
         v.pagePrev:SetEnabled(page>1)
         v.pageNext:SetEnabled(page<pages)
-        v.summary:SetText("DISCOVERY  |  "..#suggested.." suggestions  |  level "..s.level.."  |  "..shorten(s.zone,30))
+        local nearbyCount=0
+        local remoteZone=nil
+        for _,candidate in ipairs(suggested) do
+            if candidate.nearby then nearbyCount=nearbyCount+1
+            elseif not remoteZone then remoteZone=candidate.mapName end
+        end
+        local summaryPrefix=(#suggested>0 and nearbyCount==0 and not self.char.discoverBrowseAll)
+            and "TRAVEL PLAN" or "DISCOVERY"
+        v.summary:SetText(summaryPrefix.."  |  "..nearbyCount.." local / "..(#suggested-nearbyCount).." elsewhere  |  Lv "..s.level.."  |  "..shorten(s.zone,22))
         v.description:SetText(shorten(detail,105))
-        v.pace:SetText("OFFLINE STARTS + CLIENT HINTS  |  NPCs, levels and prerequisites need confirmation")
+        v.pace:SetText("OFFLINE + CLIENT HINTS  |  Pickup eligibility not guaranteed. /flow route")
         for i=1,5 do
             local r=v.rows[i];r.name:Hide();r.objective:Hide();r.pin:Hide()
         end
@@ -610,7 +621,8 @@ function FF:UpdateUI()
             r.quest=q
             for _,part in ipairs({r.name,r.reason,r.map,r.save,r.skip}) do part:SetShown(q~=nil) end
             if q then
-                r.name:SetText(shorten(i..". "..q.title.."  ["..q.confidence.."]",78))
+                local locationBadge=(not q.nearby and q.mapName) and (" ["..q.mapName:upper().."]") or ""
+                r.name:SetText(shorten(((page-1)*3+i)..". "..q.title..locationBadge.."  ["..q.confidence.."]",78))
                 r.reason:SetText(shorten(q.why,142))
                 r.save.text:SetText(q.saved and "UNSAVE" or "SAVE")
             end
@@ -626,13 +638,12 @@ function FF:UpdateUI()
         end
     end
     if not discoverMode then
-    v.summary:SetText((s.questCount or "?").." quests  |  "..s.questComplete.." ready  |  "..(self.char.manualQuestID>0 and "manual quest pinned" or "auto selected"))
+    local advisor=self.routeAdvice
+    v.summary:SetText(advisor and (advisor.kind.."  |  "..shorten(advisor.title,42)) or "QUEST ROUTE")
     local active=plan.quest
-    v.description:SetText(active and
-        ("ACTIVE: "..shorten(active.title,40).."  |  "..(self.char.manualQuestID>0 and "PINNED BY YOU" or "AUTO PICK").."  |  "..(active.done and "READY TO TURN IN" or "OBJECTIVES ACTIVE"))
-        or "No active quest. Pick up quests and open your quest log.")
+    v.description:SetText(advisor and shorten(advisor.reason,126) or "Choose a quest or check Discover Quests.")
     local pace=self:LevelingPace(s)
-    v.pace:SetText(self.char.showPace and ("SESSION PACE: "..(pace.reliable and (pace.rate.." XP/hr") or "calculating after 5 minutes").."  |  NEXT LEVEL: "..pace.eta) or "SESSION PACE: hidden (/flow pace)")
+    v.pace:SetText(advisor and shorten(advisor.next,114) or "Select a quest to build a route.")
     for i=1,5 do
         local quest=s.quests[i];local row=v.rows[i]
         if quest then
@@ -666,7 +677,7 @@ function FF:UpdateUI()
     if s.elapsed>=180 then
         v.goldPerHour:SetText("Gained per hour (session): "..self:MoneyText(s.session.earned*3600/s.elapsed)..". Not a guaranteed farming rate.")
     else v.goldPerHour:SetText("Hourly rate appears after 3 minutes; short sessions are misleading.") end
-    v.goldCategory:SetText(s.goldCategory.."  |  "..(s.bagFree and (s.bagFree.." bag slots free") or "bags unavailable"))
+    v.goldCategory:SetText(s.goldCategory.."  |  "..(s.bagFree and (s.bagFree.." free bag slots") or "bags unavailable"))
     v.advice:SetText(shorten(s.goldTip,150))
     v.goalFill(target>0 and s.money/target or 0)
     v.goalDetail:SetText(target>s.money and (self:MoneyText(target-s.money).." until next target") or "Gold target reached!")
