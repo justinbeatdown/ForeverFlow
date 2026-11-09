@@ -133,6 +133,23 @@ function FF:FindDiscoveries(snapshot, force)
         end
         byID[q.id]=q
     end
+    -- Prefer wide-world documented quest starts. Limited legacy records are kept
+    -- as fallback if the global data layer is missing on older installs.
+    if self.worldQuestData and self.WorldQuestCandidates then
+        local worldList=self:WorldQuestCandidates(snapshot,mapID,browseAll,saved,ignored)
+        -- Current-zone mode falls back to broader level-appropriate choices if
+        -- there are genuinely no eligible local starts.
+        if #worldList==0 and not browseAll then
+            worldList=self:WorldQuestCandidates(snapshot,mapID,true,saved,ignored)
+        end
+        self.discoveredQuests=worldList
+        local nearby=0
+        for _,q in ipairs(worldList) do if q.mapID==mapID then nearby=nearby+1 end end
+        local info=(#worldList==0 and 'No verified-compatible documented starts; continue your current route or browse other maps.')
+            or (nearby==0 and 'TRAVEL PLAN | '..#worldList..' documented candidate pickups elsewhere. Check NPC availability.'
+            or nearby..' nearby documented pickups | '..#worldList..' total shown; availability not guaranteed')
+        return worldList,info
+    end
     -- Offline catalog works immediately, even when quest-line APIs are absent.
     -- In current-zone mode, allow cross-zone suggestions when your actual zone
     -- has no eligible pickup; the user can also switch to browsing nearby hubs.
@@ -225,6 +242,7 @@ function FF:FindDiscoveries(snapshot, force)
             -(q.minLevel and q.minLevel>level-1 and 6 or 0)
         if q.source=="offline" then
             q.why=(q.saved and "SAVED | " or "")
+                ..(not sameZone and "TRAVEL REQUIRED | " or "")
                 ..(q.flags=="elite" and "ELITE / GROUP? | " or "")
                 .."Pick up: "..(q.npc or "unknown")
                 ..(q.x and string.format(" %.1f, %.1f",q.x,q.y) or "")
@@ -255,22 +273,39 @@ function FF:FindDiscoveries(snapshot, force)
     end
     list=unique
     self.discoveredQuests=list
-    local info=(#list>0 and (#list.." possible quests: offline pickup records + client hints; check NPC / chain access")
-        or "No matching quest starts in this area at your level. Try BROWSE ZONES or talk to a quest giver.")
+    local nearbyCount=0
+    for _,q in ipairs(list) do
+        if (q.areaID and q.areaID==zoneKey) or (q.mapID and q.mapID==mapID) then
+            nearbyCount=nearbyCount+1
+        end
+    end
+    local info
+    if #list==0 then
+        info="No suitable pickup records found. Try BROWSE ZONES or continue your current quest route."
+    elseif nearbyCount==0 and not browseAll then
+        info="NO NEARBY PICKUPS IN CATALOG | Travel suggestions shown instead; finish current zone quests first."
+    elseif browseAll then
+        info=#list.." candidates across covered zones; TRAVEL REQUIRED labels indicate other zones."
+    else
+        info=nearbyCount.." possible local pickups; reported NPC and chain requirements need verification."
+    end
     return list,info
 end
 function FF:ToggleSavedDiscovery(id)
+    self._worldQuestCache=nil
     if not validID(id) then return end
     local t=self.char.savedDiscoveries
     t[id]=not t[id] or nil
     self:Refresh()
 end
 function FF:SkipDiscovery(id)
+    self._worldQuestCache=nil
     if not validID(id) then return end
     self.char.skippedDiscoveries[id]=true
     self:Refresh()
 end
 function FF:ResetSkippedDiscoveries()
+    self._worldQuestCache=nil
     self.char.skippedDiscoveries={}
     if self.snapshot then self:FindDiscoveries(self.snapshot,true) end
     self:Refresh()

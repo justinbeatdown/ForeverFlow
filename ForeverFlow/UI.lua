@@ -651,7 +651,7 @@ function FF:UpdateUI()
         end
         local count=math.min(3,#suggested)
         v.empty:SetShown(count==0)
-        v.empty:SetText("No compatible quest pickups found in the available reference.\n\nTry BROWSE ZONES to see nearby quest hubs, or visit a quest giver for live sightings.\n\nOffline catalog currently covers The Barrens and Stonetalon; quest chains and server availability must be checked.")
+        v.empty:SetText("No compatible quest pickups found in the available reference.\n\nTry BROWSE ZONES to see nearby quest hubs, or visit a quest giver for live sightings.\n\nThe offline library includes reported quest starts across Azeroth; NPC availability and server-specific quest changes require confirmation.")
         for i=1,3 do
             local r=v.discoverRows[i]; local q=suggested[(page-1)*3+i]
             r.quest=q

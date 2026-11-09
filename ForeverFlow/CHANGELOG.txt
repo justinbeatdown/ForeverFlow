@@ -1,3 +1,11 @@
+v0.5.6-beta1 - World Quest Coverage (TEST RELEASE)
+- Staged 4,346 documented quest starts across 79 map areas from MIT-licensed Forever data.
+- Added faction/race/class, min-level, quest-level, prerequisites, exclusions and completion filters.
+- Deprecated hard-coded two-zone restriction for Discover Quests; broad browsing across maps.
+- Excludes profession/reputation-gated quests until specific skill and rep checks can be validated.
+- Quest IDs, pickup coordinates and prerequisites are documentary, not live-server guarantees.
+- Not yet tested inside WoW Forever 1.60.1. Never upload to release branch before QA.
+
 ForeverFlow 0.5.5 - Route Intelligence Release
 
 - New NEXT BEST ACTION planner uses live objective progress, turn-ins, bag space and durability.
