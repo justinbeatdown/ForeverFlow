@@ -1,3 +1,12 @@
+ForeverFlow 0.5.3 (Small icon readability + minimap polish)
+- Derived two optimized compact emblems from the approved ForeverFlow logo.
+- Live Guide: removed unreadable miniature wordmark and kept castle/path scene.
+- Minimap: independently padded circular emblem with improved size and contrast.
+- AddOn list icon now points at the compact minimap emblem.
+- Full approved logo remains in the addon for larger views.
+- Quest recommendation, auto-follow, gold and leveling logic unchanged.
+- In-client Forever testing still required before public release.
+
 ForeverFlow 0.5.2 (Branding + Live Guide clipping hotfix)
 - Replaced all generic/approximate round badges with textures generated directly
   from the exact approved, transparent circular ForeverFlow logo.
