@@ -55,7 +55,8 @@ jobs:
           root = Path("ForeverFlow")
           toc = (root / "ForeverFlow.toc").read_text(encoding="utf-8")
           version = re.search(r"^## Version:\s*(\S+)\s*$", toc, re.M).group(1)
-          out = Path("ForeverFlow_v" + version + "_Beta.zip")
+          release = bool(__import__("os").environ.get("GITHUB_REF", "").startswith("refs/tags/v"))
+          out = Path("ForeverFlow_v" + version + ("_Release.zip" if release else "_Beta.zip"))
           with ZipFile(out, "w", ZIP_DEFLATED, compresslevel=9) as archive:
               for file in sorted(root.rglob("*")):
                   if file.is_file() and not file.name.startswith("."):
@@ -71,5 +72,47 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ForeverFlow-installable
-          path: ForeverFlow_v*_Beta.zip
+          path: ForeverFlow_v*.zip
           if-no-files-found: error
+
+      # Only a version tag publishes. Ordinary pushes and PRs just run tests.
+      # First manually uploaded version 0.5.3 is deliberately NOT tagged here.
+      - name: Publish tagged version to CurseForge
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          CF_AUTHOR_TOKEN: ${{ secrets.CURSEFORGE_API_TOKEN }}
+          CF_PROJECT_ID: "1793262"
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${CF_AUTHOR_TOKEN}" ]]; then
+            echo "::error::Add the CURSEFORGE_API_TOKEN repository secret before tagging a release."
+            exit 1
+          fi
+          VERSION="$(sed -n 's/^## Version: *//p' ForeverFlow/ForeverFlow.toc | tr -d '\r')"
+          TAG="${GITHUB_REF_NAME}"
+          if [[ "${TAG}" != "v${VERSION}" ]]; then
+            echo "::error::Tag ${TAG} does not match addon manifest version ${VERSION}."
+            exit 1
+          fi
+          FILE="$(cat zip_filename.txt)"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          version = next(x.split(":",1)[1].strip() for x in Path("ForeverFlow/ForeverFlow.toc").read_text().splitlines() if x.startswith("## Version:"))
+          changelog = Path("ForeverFlow/CHANGELOG.txt").read_text(encoding="utf-8")
+          metadata = {
+              "changelog": changelog,
+              "changelogType": "text",
+              "displayName": f"ForeverFlow {version}",
+              "gameVersionNames": ["1.60.1"],
+              "releaseType": "release",
+              "isMarkedForManualRelease": False
+          }
+          Path("curseforge-metadata.json").write_text(json.dumps(metadata), encoding="utf-8")
+          PY
+          curl --fail-with-body --show-error --silent --retry 2 \
+            -H "X-Api-Token: ${CF_AUTHOR_TOKEN}" \
+            -F "metadata=<curseforge-metadata.json" \
+            -F "file=@${FILE}" \
+            "https://wow.curseforge.com/api/projects/${CF_PROJECT_ID}/upload-file"
