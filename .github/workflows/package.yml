@@ -17,6 +17,11 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Generate compact brand emblems
+        run: |
+          python -m pip install Pillow
+          python build_icons.py
+
       - name: Validate addon layout and manifest
         shell: python
         run: |
@@ -37,7 +42,7 @@ jobs:
               assert path.is_file(), f"Missing file referenced in TOC: {line}"
           icon = re.search(r"^## IconTexture:\s*(.+)$", content, re.M)
           assert icon and (root / "Media" / "OfficialCircle.tga").is_file(), "Official brand icon missing"
-          for texture in ["OfficialCircle.tga","MinimapRound.tga","BrandSeal.tga","HUDBackground.tga"]:
+          for texture in ["OfficialCircle.tga","MinimapRound.tga","BrandSeal.tga","HUDBackground.tga","GuideLogoSmall.tga","MinimapIconRound.tga"]:
               assert (root / "Media" / texture).is_file(), f"Missing texture {texture}"
           print("Validated ForeverFlow", version.group(1), "for interface 16001")
 
