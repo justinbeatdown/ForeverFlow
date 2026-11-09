@@ -1,4 +1,4 @@
--- ForeverFlow 0.5.3 | gold/charcoal dashboard and compact live field guide.
+-- ForeverFlow 0.5.4 UI preview | original classic fantasy bronze/black visual theme.
 local _,FF=...
 local C=FF.colors
 local W,H=652,720
@@ -45,7 +45,7 @@ local function button(parent,caption,x,y,w,h,cb)
     f:SetScript("OnClick",cb)
     f:SetScript("OnEnter",function(self)
         self:SetBackdropBorderColor(C.gold[1],C.gold[2],C.gold[3],1)
-        self:SetBackdropColor(1.20,1.14,1.05,1)
+        self:SetBackdropColor(1.22,1.17,1.08,1)
     end)
     f:SetScript("OnLeave",function(self)
         local active=self.ffActive==true
@@ -254,14 +254,18 @@ function FF:MakeSettings(p)
         FF.window:ClearAllPoints(); FF.window:SetPoint("CENTER",UIParent,"CENTER",0,0)
         FF.guide:ClearAllPoints(); FF.guide:SetPoint("CENTER",UIParent,"CENTER",-620,170)
     end)
-    v.autofollow=button(settings,"AUTO-FOLLOW",12,210,600,33,function()
+    v.scale=button(settings,"GUIDE SCALE",317,210,295,33,function()
+        local current=FF.char.guideScale or 1
+        FF:SetGuideScale(current<.95 and 1 or (current<1.1 and 1.2 or .85))
+    end)
+    v.autofollow=button(settings,"AUTO-FOLLOW",12,210,293,33,function()
         FF:SetAutoFollow(not FF.char.autoFollow)
     end)
     local info=panel(p,14,277,624,222)
     heading(info,"HOW TO USE FOREVERFLOW")
-    label(info,"1   Log in: your recommended quest is auto-tracked and focused.",12,35,590,27,13,C.white)
+    label(info,"1   Log in: ForeverFlow suggests a quest and requests tracking.",12,35,590,27,13,C.white)
     label(info,"2   Follow the compact HUD. Expand it for more controls.",12,73,458,42,13,C.white)
-    label(info,"3   Your next quest is focused when the recommendation changes.",12,115,458,47,13,C.white)
+    label(info,"3   /flow where explains hints; /flow why explains the choice.",12,115,458,47,13,C.white)
     icon(info,"ForeverFlowLogo.tga",489,45,121,121)
     label(info,"No automatic movement/combat. Quest focus uses the native client; if unavailable, the map button remains available.",12,169,590,48,11,C.muted)
     return v
@@ -272,18 +276,20 @@ function FF:CreateGuide()
     -- 88px view; the extended view is optional for extra detail and controls.
     local g=CreateFrame("Frame",nil,UIParent,"BackdropTemplate")
     g:SetSize(302,103)
+    g:SetScale(self.char.guideScale or 1)
     g:SetPoint("CENTER",UIParent,"CENTER",self.char.guideX,self.char.guideY)
     g:SetFrameStrata("MEDIUM");g:SetClampedToScreen(true)
     g:SetMovable(true);g:EnableMouse(true);g:RegisterForDrag("LeftButton")
     skin(g,C.bg,C.gold,"HUDBackground.tga")
-    g:SetAlpha(.94)
+    g:SetAlpha(.97)
     g:SetScript("OnDragStart",function(self) if not FF.char.guideLocked then self:StartMoving() end end)
     g:SetScript("OnDragStop",function(self) self:StopMovingOrSizing();FF:SavePosition(self,"guide") end)
-    -- Compact approved-logo castle/path emblem stays legible at 30px.
-    -- Divider begins at y=38, safely below the 34px badge edge.
+    -- Compact emblem isolates the approved logo’s castle/path scene so it remains
+    -- legible at 30px; full official mark is preserved on larger UI surfaces.
+    -- Header divider starts at 38px, below the 34px badge edge.
     g.badge=icon(g,"GuideLogoSmall.tga",8,4,30,30)
     label(g,"FOREVER|cffffbd5cFLOW|r",45,7,130,20,12,C.white)
-    g.follow=label(g,"AUTO-FOLLOW",172,10,77,14,9,C.green,"RIGHT")
+    g.follow=label(g,"AUTO-FOLLOW",167,10,82,14,9,C.gold,"RIGHT")
     g.collapse=button(g,"v",255,7,20,20,function(_,mouse)
         if mouse=="RightButton" then
             FF.char.guideCollapsed=not FF.char.guideCollapsed
@@ -297,16 +303,34 @@ function FF:CreateGuide()
     end)
     g.collapse:RegisterForClicks("LeftButtonUp","RightButtonUp")
     button(g,"x",278,7,19,20,function() FF:ToggleGuide() end)
-    rule(g,7,38,287,.3)
+    rule(g,7,38,287,.56)
     g.content=CreateFrame("Frame",nil,g)
     g.content:SetPoint("TOPLEFT",g,"TOPLEFT",0,-42)
     g.content:SetSize(302,144)
     g.kind=label(g.content,"",9,0,283,16,9,C.gold)
     g.title=label(g.content,"",9,17,283,23,14,C.white)
-    g.where=label(g.content,"",9,40,280,18,10,C.blue)
+    g.where=label(g.content,"",9,40,280,18,10,C.gold)
     -- The detailed text and buttons live ONLY in the expanded mode.
     g.detail=label(g.content,"",9,62,282,29,10,C.white)
     g.gold=label(g.content,"",9,95,282,15,10,C.green)
+    -- An actual navigation control, not a perpetually static line of flavor text.
+    g.goldLink=CreateFrame("Button",nil,g.content)
+    g.goldLink:SetPoint("TOPLEFT",g.content,"TOPLEFT",7,-93)
+    g.goldLink:SetSize(288,20)
+    g.goldLink:RegisterForClicks("LeftButtonUp")
+    g.goldLink:SetScript("OnClick",function()
+        FF.window:Show(); FF.char.visible=true; FF:ShowTab("gold"); FF:Refresh()
+    end)
+    g.goldLink:SetScript("OnEnter",function(self)
+        if not GameTooltip then return end
+        GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
+        GameTooltip:AddLine("ForeverFlow Gold Tracker",1,.78,.35)
+        GameTooltip:AddLine("Session totals update from inventory and coin changes.",1,1,1)
+        GameTooltip:AddLine("Material gains can include bag transfers, not just gathering.",.75,.75,.75)
+        GameTooltip:AddLine("Click to open the Gold tab.",.6,1,.6)
+        GameTooltip:Show()
+    end)
+    g.goldLink:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end)
     g.map=button(g.content,"MAP",7,119,88,24,function() FF:MapAction() end)
     g.next=button(g.content,"NEXT",106,119,88,24,function() FF:SkipQuest() end)
     g.open=button(g.content,"DETAILS",205,119,90,24,function()
@@ -327,6 +351,7 @@ function FF:SetGuideCollapsed(value)
     self.guide.collapse.text:SetText(value and "+" or (compact and "v" or "^"))
     self.guide.detail:SetShown(not value and not compact)
     self.guide.gold:SetShown(not value and not compact)
+    self.guide.goldLink:SetShown(not value and not compact)
     self.guide.map:SetShown(not value and not compact)
     self.guide.next:SetShown(not value and not compact)
     self.guide.open:SetShown(not value and not compact)
@@ -406,7 +431,7 @@ function FF:CreateUI()
     self.window=win
     -- Real standalone wordmark art; no cropped logo scenery or subtitle.
     icon(win,"HeaderWordmark.tga",15,14,281,68)
-    rule(win,14,90,624,.63)
+    rule(win,14,90,624,.85)
     label(win,"SMART LEVELING + GOLD",309,26,233,21,14,C.gold)
     label(win,"Questing  /  Gold  /  Progress",309,51,235,20,11,C.muted)
     button(win,"GUIDE",551,12,57,25,function()
@@ -438,7 +463,7 @@ function FF:CreateUI()
     self.views.skills=self:MakeSkills(self.pages.skills)
     self.views.character=self:MakeCharacter(self.pages.character)
     self.views.settings=self:MakeSettings(self.pages.settings)
-    rule(win,14,695,624,.45)
+    rule(win,14,695,624,.60)
     label(win,"AUTO PLAN   /   YOU PLAY, WE GUIDE   /   /flow help",16,701,624,18,10,C.muted)
     self:CreateGuide()
     self:CreateMinimapButton()
@@ -470,18 +495,13 @@ function FF:UpdateUI()
         end
         g.where:SetText(shorten(destination,51))
         local state=self.char.autoFollow and (self.autoFollowStatus or "WAITING") or "OFF"
-        local shortStatus=({["QUEST FOCUSED"]="FOCUSED",["PIN SET"]="PIN SET",
-          ["QUEST WATCHED"]="WATCHED",["MANUAL MAP"]="MAP NEEDED",
-          ["AFTER COMBAT"]="IN COMBAT",["NO QUEST"]="NO QUEST"})[state] or state
+        local shortStatus=({["QUEST FOCUSED"]="FOCUSED",["FOCUS REQUESTED"]="FOCUS SENT",
+          ["HINT PIN SET"]="HINT PIN",["WATCH REQUESTED"]="WATCH SENT",
+          ["MAP NEEDED"]="MAP NEEDED",["AFTER COMBAT"]="IN COMBAT",
+          ["NO QUEST"]="NO QUEST"})[state] or state
         g.follow:SetText(shorten(shortStatus,12))
-        paint(g.follow,self.char.autoFollow and C.green or C.muted)
-        local goldText=(s.goldCategory or "QUEST GOLD")
-        if goldText=="HERBALISM" then goldText="HERBS · gather on your quest route"
-        elseif goldText=="MINING" then goldText="ORE · mine nodes along your route"
-        elseif goldText=="SKINNING" then goldText="SKINNING · skin defeated beasts"
-        elseif goldText=="INVENTORY" then goldText="BAGS · clear space before farming"
-        else goldText="QUESTS · loot and vendor gray items" end
-        g.gold:SetText("GOLD  /  "..shorten(goldText,47))
+        paint(g.follow,(state=="QUEST FOCUSED") and C.green or C.gold)
+        g.gold:SetText(shorten(self:GoldHudSummary(s),53))
         g.map.text:SetText(plan.quest and plan.quest.waypoint and plan.quest.waypoint.id and "SET PIN" or "OPEN MAP")
     end
     self.status:SetText("LEVEL "..s.level.."  |  "..s.className.."  |  "..shorten(s.zone,30))
@@ -502,7 +522,7 @@ function FF:UpdateUI()
 
     v=self.views.leveling
     v.summary:SetText((s.questCount or "?").." quests  |  "..s.questComplete.." ready  |  "..(self.char.manualQuestID>0 and "manual quest pinned" or "auto selected"))
-    v.description:SetText("Top suggestions are based on completed objectives, quest levels and client distance when available. They are not a full optimized zone route.")
+    v.description:SetText("Suggestions use live quest progress, zone, level and client distance. Coordinates are quest hints, not verified mob locations. Try /flow why.")
     for i=1,5 do
         local quest=s.quests[i];local row=v.rows[i]
         if quest then
@@ -570,7 +590,8 @@ function FF:UpdateUI()
     v.minimap.text:SetText("MINIMAP ICON: "..(self.char.hideMinimap and "OFF" or "ON"))
     v.lock.text:SetText("MOVE GUIDE: "..(self.char.guideLocked and "LOCKED" or "UNLOCKED"))
     v.hudSize.text:SetText("HUD SIZE: "..(self.char.hudMinimal and "COMPACT" or "EXPANDED"))
-    v.autofollow.text:SetText("AUTO TRACK + NATIVE QUEST FOCUS: "..(self.char.autoFollow and "ON" or "OFF"))
+    v.autofollow.text:SetText("AUTO-FOLLOW: "..(self.char.autoFollow and "ON" or "OFF"))
+    v.scale.text:SetText("GUIDE SCALE: "..math.floor((self.char.guideScale or 1)*100+.5).."%")
     switchHighlight(v.autofollow,self.char.autoFollow)
     v.quiet.text:SetText("LEVEL-UP CHAT TIPS: "..(self.db.quiet and "OFF" or "ON"))
     switchHighlight(v.simple,self.db.mode=="simple")

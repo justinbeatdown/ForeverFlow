@@ -122,7 +122,7 @@ local function waypoint(id)
     local info=nil
     if type(mapID)=="number" and type(x)=="number" and type(y)=="number" and x>=0 and x<=1 and y>=0 and y<=1 then
         local mapInfo=C_Map and safeCall(C_Map.GetMapInfo,mapID)
-        info={id=mapID,x=x,y=y,mapName=(type(mapInfo)=="table" and mapInfo.name or nil),text=title}
+        info={id=mapID,x=x,y=y,mapName=(type(mapInfo)=="table" and mapInfo.name or nil),text=title,source="nativeQuest",verifiedObjective=false}
     elseif title and title~="" then info={text=title} end
     return info
 end
@@ -143,7 +143,7 @@ function FF:ReadQuests(level)
                 if type(poi)=="table" and type(poi.questID)=="number" and not poi.isQuestStart
                     and type(poi.x)=="number" and type(poi.y)=="number"
                     and poi.x>=0 and poi.x<=1 and poi.y>=0 and poi.y<=1 then
-                    poiByID[poi.questID]={id=currentMap,x=poi.x,y=poi.y,source="mapPOI"}
+                    poiByID[poi.questID]={id=currentMap,x=poi.x,y=poi.y,source="mapPOI",verifiedObjective=false}
                 end
             end
         end
@@ -239,6 +239,33 @@ local function professionGoldAdvice(s)
     end
     return "Finish quests, loot useful drops, and vendor unwanted gray items. Check prices before selling valuables.","QUEST GOLD"
 end
+-- Compact read-only gold status: reflect real session changes, not generic advice.
+-- Inventory deltas include bank withdrawals; they are not proof of harvesting.
+function FF:GoldHudSummary(s)
+    if not s then return "GOLD / Waiting for character data" end
+    local session=s.session or {}
+    local earned=num(session.earned,0)
+    local spent=num(session.spent,0)
+    local free=s.bagFree
+    if type(free)=="number" and free<=4 then
+        return "BAGS / "..free.." free - vendor or clear space"
+    end
+    if type(s.durability)=="number" and s.durability<=30 then
+        return "GEAR / "..s.durability.."% durability - repair soon"
+    end
+    local herbs,ore,leather=num(session.herb,0),num(session.ore,0),num(session.leather,0)
+    local category=s.goldCategory or "QUEST GOLD"
+    if category=="HERBALISM" then
+        return "HERBS / +"..herbs.." materials this session | "..self:MoneyText(earned-spent,true).." net"
+    elseif category=="MINING" then
+        return "ORE / +"..ore.." materials this session | "..self:MoneyText(earned-spent,true).." net"
+    elseif category=="SKINNING" then
+        return "SKIN / +"..leather.." materials this session | "..self:MoneyText(earned-spent,true).." net"
+    end
+    local turns=num(session.questTurns,0)
+    return "GOLD / "..self:MoneyText(earned-spent,true).." net | "..turns.." quests done"
+end
+
 function FF:CollectSnapshot()
     local level=num(safeCall(UnitLevel,"player"),1)
     local name,tag=safeCall(UnitClass,"player")
@@ -300,17 +327,23 @@ function FF:ChoosePlan(s)
         action.detail=quest.done and "Objectives complete - find the quest giver to collect your reward."
             or (quest.firstObjective or "Follow the objectives in your quest log.")
         if quest.waypoint then
-            if quest.waypoint.text and quest.waypoint.text~="" then action.where=quest.waypoint.text end
+            if quest.waypoint.text and quest.waypoint.text~="" then
+                action.where="Client hint: "..quest.waypoint.text
+            end
             if quest.waypoint.id then
                 local coords=string.format("%.1f, %.1f",quest.waypoint.x*100,quest.waypoint.y*100)
                 local named=quest.waypoint.mapName or s.zone
                 local loc=named.." ("..coords..")"
-                action.where=(action.where~="" and (action.where.."  |  ") or "Waypoint: ")..loc
+                -- Client coordinates are quest hints, not guaranteed mob/NPC locations.
+                local prefix=quest.waypoint.source=="mapPOI" and "Quest map marker: " or "Quest route hint: "
+                action.where=prefix..loc
+                action.destinationQuality=quest.waypoint.source=="mapPOI" and "MAP MARKER" or "CLIENT HINT"
             end
         else
             if quest.questArea and quest.questArea~="" then
-                action.where="Quest-log area: "..quest.questArea.." (not an exact NPC pin)"
-            else action.where="Check your quest map for the objective location" end
+                action.where="Quest area: "..quest.questArea.." (no verified pin)"
+            else action.where="Quest map: no verified objective pin" end
+            action.destinationQuality="NO PIN"
         end
     elseif s.questCount==0 then
         action.detail="No quests in the log. Visit a nearby quest giver or explore an appropriate-level zone."

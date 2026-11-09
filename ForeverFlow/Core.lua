@@ -1,15 +1,15 @@
--- ForeverFlow 0.5.3 / player-first HUD. UI and suggestions only: no movement, combat or selling automation.
+-- ForeverFlow 0.5.4 / player-first HUD. UI and suggestions only: no movement, combat or selling automation.
 local addonName, FF = ...
-FF.version = "0.5.3"
+FF.version = "0.5.4"
 FF.addon = addonName or "ForeverFlow"
 FF.media = "Interface\\AddOns\\ForeverFlow\\Media\\"
 FF.colors = {
-    bg={0.035,0.045,0.065,0.98}, panel={0.085,0.101,0.133,1},
-    panel2={0.115,0.135,0.170,1}, button={0.135,0.160,0.202,1},
-    border={0.27,0.30,0.36,1}, gold={1.0,0.73,0.30,1},
-    white={0.97,0.97,0.96,1}, muted={0.69,0.74,0.80,1},
-    green={0.43,0.87,0.60,1}, orange={1,0.53,0.28,1},
-    blue={0.52,0.76,1,1}
+    bg={0.10,0.075,0.052,0.98}, panel={0.14,0.105,0.070,1},
+    panel2={0.19,0.14,0.09,1}, button={0.22,0.16,0.10,1},
+    border={0.37,0.28,0.16,1}, gold={1.0,0.75,0.26,1},
+    white={0.99,0.95,0.84,1}, muted={0.77,0.72,0.59,1},
+    green={0.43,0.85,0.48,1}, orange={1,0.55,0.22,1},
+    blue={0.58,0.78,1,1}
 }
 local function trim(s) return (tostring(s or ""):gsub("^%s+", ""):gsub("%s+$", "")) end
 local function numberOr(x,def) return type(x)=="number" and x or def end
@@ -37,6 +37,7 @@ function FF:InitDB()
     if c.hideMinimap==nil then c.hideMinimap=false end
     if c.locked==nil then c.locked=false end
     if c.guideLocked==nil then c.guideLocked=false end
+    c.guideScale=math.max(.8,math.min(1.2,numberOr(c.guideScale,1)))
     c.posX=numberOr(c.posX,0); c.posY=numberOr(c.posY,0)
     c.guideX=numberOr(c.guideX,-620); c.guideY=numberOr(c.guideY,170)
     c.minimapAngle=numberOr(c.minimapAngle,42)
@@ -147,6 +148,15 @@ function FF:Toggle()
     self.window:SetShown(self.char.visible)
     self:Refresh()
 end
+function FF:SetGuideScale(scale)
+    if not self.char then return end
+    scale=tonumber(scale)
+    if not scale then self:Message("Use /flow scale 0.8 through 1.2");return end
+    self.char.guideScale=math.max(.8,math.min(1.2,scale))
+    if self.guide then self.guide:SetScale(self.char.guideScale) end
+    self:Message("Guide scale: "..math.floor(self.char.guideScale*100+.5).."%")
+    self:Refresh()
+end
 function FF:ToggleGuide()
     if not self.guide then return end
     self.char.guideVisible=not self.guide:IsShown()
@@ -225,50 +235,47 @@ function FF:SyncRecommendedQuest(plan,force)
         self.autoFollowStatus="AFTER COMBAT"
         return
     end
-    local watched=false
+    local watchRequested=false
     if C_QuestLog and C_QuestLog.AddQuestWatch then
-        watched=safeAPI(C_QuestLog.AddQuestWatch,q.id)
+        local ok,result=safeAPI(C_QuestLog.AddQuestWatch,q.id)
+        watchRequested=ok and result~=false
     end
     if C_QuestLog and C_QuestLog.SetSelectedQuest then
         safeAPI(C_QuestLog.SetSelectedQuest,q.id)
     end
-    local focused=false
+    local focusRequested=false
+    local focusConfirmed=false
     if C_SuperTrack and C_SuperTrack.SetSuperTrackedQuestID then
-        -- Prefer native quest focus to a user waypoint. It supports Blizzard's
-        -- objective arrow and can follow progress without stomping custom pins.
-        focused=safeAPI(C_SuperTrack.SetSuperTrackedQuestID,q.id)
-        if focused and C_SuperTrack.GetSuperTrackedQuestID then
-            local ok,current=safeAPI(C_SuperTrack.GetSuperTrackedQuestID)
-            if ok and type(current)=="number" and current~=q.id then focused=false end
+        local ok,result=safeAPI(C_SuperTrack.SetSuperTrackedQuestID,q.id)
+        focusRequested=ok and result~=false
+        if focusRequested and C_SuperTrack.GetSuperTrackedQuestID then
+            local readOK,current=safeAPI(C_SuperTrack.GetSuperTrackedQuestID)
+            focusConfirmed=readOK and current==q.id
         end
     end
     local pinned=false
-    if not focused then
-        local wp=q.waypoint
-        if wp and type(wp.id)=="number" and type(wp.x)=="number" and type(wp.y)=="number"
-            and C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates then
-            -- Do not replace someone else's map pin. We only own our last pin.
+    local mapHint=q.waypoint
+    if not focusRequested and mapHint and mapHint.source=="nativeQuest" then
+        if mapHint.id and C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates then
+            -- Never replace a user's pin. A compatible native client hint may be
+            -- used only if the map is empty or still contains our prior pin.
             local existing=C_Map.GetUserWaypoint and select(2,safeAPI(C_Map.GetUserWaypoint)) or nil
-            -- A previous FF pin is only ours while the player has not moved it.
-            local canUpdate=(not existing)
+            local canUpdate=not existing
             if existing and self.ownedWaypoint and type(existing)=="table" then
                 local p=existing.position
-                if type(p)=="table" then
-                    local x,y=p.x,p.y
-                    if type(x)=="number" and type(y)=="number" then
-                        canUpdate=existing.uiMapID==self.ownedWaypoint.id
-                            and math.abs(x-self.ownedWaypoint.x)<.002
-                            and math.abs(y-self.ownedWaypoint.y)<.002
-                    end
+                if type(p)=="table" and type(p.x)=="number" and type(p.y)=="number" then
+                    canUpdate=existing.uiMapID==self.ownedWaypoint.id
+                        and math.abs(p.x-self.ownedWaypoint.x)<.002
+                        and math.abs(p.y-self.ownedWaypoint.y)<.002
                 end
             end
             if canUpdate then
-                local pointOK,point=safeAPI(UiMapPoint.CreateFromCoordinates,wp.id,wp.x,wp.y)
+                local pointOK,point=safeAPI(UiMapPoint.CreateFromCoordinates,mapHint.id,mapHint.x,mapHint.y)
                 if pointOK and point then
                     local setOK,didSet=safeAPI(C_Map.SetUserWaypoint,point)
                     pinned=setOK and didSet~=false
                     if pinned then
-                        self.ownedWaypoint={id=wp.id,x=wp.x,y=wp.y}
+                        self.ownedWaypoint={id=mapHint.id,x=mapHint.x,y=mapHint.y}
                         if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then
                             safeAPI(C_SuperTrack.SetSuperTrackedUserWaypoint,true)
                         end
@@ -277,8 +284,13 @@ function FF:SyncRecommendedQuest(plan,force)
             end
         end
     end
-    self.autoFollowStatus=focused and "QUEST FOCUSED" or pinned and "PIN SET"
-        or watched and "QUEST WATCHED" or "MANUAL MAP"
+    self.autoFollowStatus=focusConfirmed and "QUEST FOCUSED"
+        or focusRequested and "FOCUS REQUESTED"
+        or pinned and "HINT PIN SET"
+        or watchRequested and "WATCH REQUESTED" or "MAP NEEDED"
+    self.autoFollowDetail=mapHint and (mapHint.source=="mapPOI" and "Map POI (not verified objective)"
+        or "Native quest route hint (not verified objective)") or "No compatible quest coordinates"
+
 end
 
 function FF:Debug()
@@ -286,6 +298,7 @@ function FF:Debug()
     self:Message("Quests: "..tostring(self.snapshot and self.snapshot.questCount or "unknown").." | priority: "..tostring(self.char and self.char.priority))
     self:Message("Minimap: "..tostring(self.minimap~=nil).." | last error: "..tostring(self.lastError or "none"))
     self:Message("Auto-follow: "..tostring(self.char and self.char.autoFollow).." | "..tostring(self.autoFollowStatus or "waiting").." | quest "..tostring(self.plan and self.plan.quest and self.plan.quest.id))
+    self:Message("Destination: "..tostring(self.autoFollowDetail or "unknown").." | "..tostring(self.plan and self.plan.destinationQuality or "no classification"))
 end
 
 SLASH_FOREVERFLOW1="/flow"
@@ -297,6 +310,7 @@ SlashCmdList.FOREVERFLOW=function(input)
     local tabs={today=true,leveling=true,gold=true,skills=true,character=true,settings=true}
     if cmd=="" then FF:Toggle()
     elseif cmd=="guide" then FF:ToggleGuide()
+    elseif cmd=="scale" then FF:SetGuideScale(arg)
     elseif cmd=="hud" then
         if arg=="tiny" or arg=="min" then FF.char.hudMinimal=true
         elseif arg=="normal" or arg=="full" then FF.char.hudMinimal=false
@@ -315,17 +329,33 @@ SlashCmdList.FOREVERFLOW=function(input)
         else FF:SetAutoFollow(not FF.char.autoFollow) end
         FF:Message("Automatic quest following: "..(FF.char.autoFollow and "ON" or "OFF"))
     elseif cmd=="focus" then FF:SyncRecommendedQuest(FF.plan,true);FF:Refresh()
-    elseif cmd=="debug" then FF:Debug()
+    elseif cmd=="debug" or cmd=="status" then FF:Debug()
+    elseif cmd=="goldstatus" then
+        local snapshot=FF.snapshot
+        FF:Message(FF:GoldHudSummary(snapshot))
+        if snapshot and snapshot.session then
+            FF:Message("Earned "..FF:MoneyText(snapshot.session.earned or 0).." | spent "..FF:MoneyText(snapshot.session.spent or 0).." | materials +"..tostring(snapshot.session.materials or 0).." (includes transfers)")
+        end
+    elseif cmd=="where" then
+        local plan=FF.plan
+        FF:Message(plan and (plan.title.." | "..(plan.where or "No location")) or "No active quest recommendation")
+        FF:Message("Coordinates are quest route/map hints, not verified target locations.")
+    elseif cmd=="why" then
+        local q=FF.plan and FF.plan.quest
+        if q then
+            FF:Message("Selected "..q.title.." | level "..tostring(q.level).." | rank "..string.format("%.0f",q.score or 0))
+            FF:Message("Factors: "..(q.zoneMatch and "same quest-log zone; " or "")..(q.near and "nearby; " or "")..(q.done and "ready to turn in; " or "active objective; ").."sticky recommendation avoids unnecessary bouncing.")
+        else FF:Message("No quest recommendation is available.") end
     elseif cmd=="resetpos" then
         FF.char.posX=0; FF.char.posY=0; FF.char.guideX=-620; FF.char.guideY=170
         FF.window:ClearAllPoints(); FF.window:SetPoint("CENTER", UIParent,"CENTER",0,0)
         FF.guide:ClearAllPoints(); FF.guide:SetPoint("CENTER",UIParent,"CENTER",-620,170)
         FF:Message("Window positions reset.")
     elseif cmd=="help" then
-        FF:Message("/flow dashboard  |  /flow guide toggle HUD  |  /flow hud tiny|normal resize HUD")
+        FF:Message("/flow dashboard  |  /flow guide toggle HUD  |  /flow hud tiny|normal  |  /flow scale 0.8-1.2")
         FF:Message("/flow priority level|gold|balanced  |  /flow follow on|off  |  /flow focus")
         FF:Message("/flow map  |  /flow track  |  /flow auto  |  /flow hud tiny|normal")
-        FF:Message("/flow leveling|skills|character|settings  |  /flow debug  |  /flow resetpos")
+        FF:Message("/flow leveling|skills|character|settings  |  /flow where  |  /flow why  |  /flow goldstatus  |  /flow status  |  /flow resetpos")
     else FF:Message("Unknown command. Type /flow help.") end
 end
 

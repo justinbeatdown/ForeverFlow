@@ -1,11 +1,43 @@
-v0.5.3 test checklist
-[ ] Live Guide badge has visible castle, path and gold compass, not unreadable tiny text.
-[ ] Title, FOCUSED status and close/expand controls do not overlap.
-[ ] Minimap icon sits centered within its circular button.
-[ ] AddOns list loads new icon, no square background.
-[ ] New quest is still auto-watched/focused when supported.
-[ ] /flow follow on/off and /flow hud tiny/normal work.
-[ ] Enable /console scriptErrors 1 and confirm no new errors.
+v0.5.4 RC2 dynamic gold footer checks
+[ ] In expanded Live Guide, Gold/Herbs line shows +0 initially and changes as herbs or ore are added to bags.
+[ ] Confirm reported material additions reflect bag increases (bank transfers may count).
+[ ] Earn or spend coin; footer net amount updates without relogging.
+[ ] Low bag space (4 or fewer slots) overrides the normal footer with a bag warning.
+[ ] At low durability (30% or less), see gear repair prompt.
+[ ] Click footer, verify Gold tab opens; collapse/expand HUD and confirm invisible link cannot block buttons.
+[ ] /flow goldstatus shows readable status and detailed session totals.
+[ ] Quest auto-follow / next-quest-on-turn-in regression remains good.
+
+0.5.4 RC1 — REQUIRED LIVE CLIENT QA
+[ ] The bronze/gold dashboard and compact/expanded guide look correct with no clipped text.
+[ ] /flow where shows location type and caveat; /flow why explains quest selection.
+[ ] Settings > GUIDE SCALE and /flow scale 0.8/1/1.2 resize correctly and persist on /reload.
+[ ] Prowlers of the Barrens: location hint not misrepresented as guaranteed claw drop coordinates.
+[ ] FOCUSED appears only when GetSuperTrackedQuestID actually confirms this quest.
+[ ] When a focus request cannot be verified, status says FOCUS SENT, not FOCUSED.
+[ ] Map POI fallback shows Quest map marker and does not auto-place a custom user pin.
+[ ] SET PIN manually works and does not claim a verified objective coordinate.
+[ ] Existing custom map pins are not replaced by background auto-follow updates.
+[ ] Turn in quest / choose NEXT / follow off-on / combat change / no quests / reload.
+[ ] No Lua errors using /console scriptErrors 1 then /reload.
+
+0.5.4 CLASSIC STYLE PREVIEW CHECKS
+[ ] Open main dashboard; borders, cards, bars and text are legible.
+[ ] Compare Live Guide expanded and compact at typical game brightness.
+[ ] Verify all six tabs and active selection styles remain visible.
+[ ] Ensure full approved icon and minimap badge are unchanged.
+[ ] Report any clipped buttons, high-contrast problems or Lua errors.
+[ ] Quest waypoint issue #1 remains open, not fixed by this styling preview.
+
+v0.5.3 release candidate checks
+[ ] Live Guide compact emblem shows a clearly recognizable gold castle/path icon, no tiny text.
+[ ] Live Guide heading remains readable without overlapping logo, status or controls.
+[ ] Minimap emblem is centered in a round button without a square background.
+[ ] AddOns list icon loads correctly from MinimapIconRound.tga.
+[ ] Official full logo remains intact in Media/OfficialCircle.tga.
+[ ] Auto-watch and quest recommendation transitions still work in-game.
+[ ] /flow hud tiny, /flow hud normal, /flow follow off/on work as before.
+[ ] /console scriptErrors 1 shows no new Lua errors after /reload.
 
 v0.5.2 branding checks
 1. On login, confirm the minimap button uses the EXACT full official

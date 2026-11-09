@@ -1,4 +1,4 @@
-ForeverFlow v0.5.3 | WoW: Forever (Interface 16001)
+ForeverFlow v0.5.4 | WoW: Forever (Interface 16001)
 
 Install:
 1. Exit the game completely.
@@ -23,3 +23,6 @@ Auto-focus does not automate movement, combat, looting, gathering or selling.
 Nothing posts data outside of WoW.
 
 Guide controls: left-click the small v/^ button to expand or compact the ribbon; right-click to collapse it to the title bar.
+
+0.5.4 RC: /flow where (quest hint), /flow why (ranking factors), /flow status (diagnostics).
+Quest-map coordinates are client-provided hints; not guaranteed objective locations.

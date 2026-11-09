@@ -1,11 +1,40 @@
+ForeverFlow 0.5.4 — Classic UI, quest guidance and dynamic Gold HUD
+- Replaced the static Gold/Herbs reminder with session-aware material gains and net coin changes.
+- Updates automatically using existing inventory/money event handling; bag warnings and low durability take priority.
+- Clicking the expanded-guide footer opens the Gold dashboard with detailed session totals.
+- /flow goldstatus prints current totals and cautions that inventory gains can include transfers.
+- Approved classic WoW appearance and prior quest focus/waypoint changes preserved.
+- In-game RC2 behavior confirmed by addon owner; broader compatibility testing ongoing.
+
+ForeverFlow 0.5.4 RC1 — Classic UI + quest hint safety + diagnostics
+- Adopted the approved classic bronze / black / warm gold dashboard and Live Guide.
+- Clearly labels native waypoint coordinates as quest route hints, not verified mob positions.
+- Differentiates a verified quest super-track result from an unverified focus request.
+- Auto-pin fallback only uses native quest hints; never automatically pins generic map POIs.
+- Manual SET PIN reports that destination is a client quest hint; remembers its own pin.
+- Improved focused-status label readability and HUD text contrast.
+- Adjustable Live Guide scale, saved per character (Settings or /flow scale 0.8-1.2).
+- New /flow where command explains current quest destination and its uncertainty.
+- New /flow why command explains ranking factors and quest recommendation.
+- /flow status is an alias for expanded diagnostics; /flow debug includes waypoint source.
+- No gameplay automation; all movement, interaction, combat, and sales remain manual.
+- RC requires real WoW Forever regression testing; not a public CurseForge release.
+
+ForeverFlow 0.5.4 UI PREVIEW (Classic fantasy style, not the public release)
+- Warmer antique bronze, dark leather/charcoal surfaces and gold framing.
+- Reworked original dashboard, HUD, and button textures, without copying any other addon assets.
+- Existing logo, HUD sizing, controls, leveling/gold logic and auto-follow remain unchanged.
+- The separately tracked quest-waypoint reliability issue #1 still needs validation before the 0.5.4 release.
+- Visual testing in the WoW Forever client still required.
+
 ForeverFlow 0.5.3 (Small icon readability + minimap polish)
-- Derived two optimized compact emblems from the approved ForeverFlow logo.
-- Live Guide: removed unreadable miniature wordmark and kept castle/path scene.
-- Minimap: independently padded circular emblem with improved size and contrast.
-- AddOn list icon now points at the compact minimap emblem.
-- Full approved logo remains in the addon for larger views.
-- Quest recommendation, auto-follow, gold and leveling logic unchanged.
-- In-client Forever testing still required before public release.
+- Created a compact scenic emblem using artwork from the exact approved logo.
+- Removed unreadable miniature wordmark from the 30px Live Guide emblem.
+- Added a separate round/padded minimap icon based on the same brand scene.
+- Updated AddOns list icon and guide/minimap texture references.
+- Preserved full circular logo in the original asset for larger contexts.
+- Kept quest recommendations, auto-follow, gold and tracking logic unchanged.
+- In-client WoW Forever testing still required before CurseForge beta release.
 
 ForeverFlow 0.5.2 (Branding + Live Guide clipping hotfix)
 - Replaced all generic/approximate round badges with textures generated directly
