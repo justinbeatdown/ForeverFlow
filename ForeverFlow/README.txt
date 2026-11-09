@@ -1,4 +1,4 @@
-ForeverFlow v0.5.2 | WoW: Forever (Interface 16001)
+ForeverFlow v0.5.3 | WoW: Forever (Interface 16001)
 
 Install:
 1. Exit the game completely.
