@@ -43,6 +43,49 @@ jobs:
               assert (root / "Media" / texture).is_file(), f"Missing texture {texture}"
           print("Validated ForeverFlow", version.group(1), "for interface 16001")
 
+      - name: Validate all Lua syntax and World Quest eligibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq lua5.4
+          for file in ForeverFlow/*.lua; do luac5.4 -p "$file"; done
+          lua5.4 - <<'LUA'
+          local FF={questCatalog={}}
+          UnitRace=function() return "Orc","Orc",2 end
+          UnitClass=function() return "Shaman","SHAMAN",7 end
+          IsQuestFlaggedCompleted=function() return false end
+          GetTime=function() return 100 end
+          C_Map={GetMapInfo=function(id)
+            return {name=({[1413]="The Barrens",[1442]="Stonetalon Mountains"})[id] or "Unknown map"}
+          end}
+          assert(loadfile("ForeverFlow/WorldQuestData.lua"))("ForeverFlow",FF)
+          assert(loadfile("ForeverFlow/WorldQuestEngine.lua"))("ForeverFlow",FF)
+          local data=FF.worldQuestData
+          assert(type(data.start)=="table" and type(data.gates)=="table")
+          local count,zones=0,{}
+          for _,maps in pairs(data.start) do
+            count=count+1
+            for zone in pairs(maps) do zones[zone]=true end
+          end
+          local nzone=0
+          for _ in pairs(zones) do nzone=nzone+1 end
+          assert(count>=4000 and nzone>=70, "World quest database incomplete")
+          local localQuests=FF:WorldQuestCandidates({level=17,quests={}},1413,false,{},{})
+          assert(#localQuests>0, "Expected Barrens suggestions for level-17 Horde")
+          for _,q in ipairs(localQuests) do
+            assert(q.mapID==1413, "Local mode should contain local map only")
+            assert(type(q.x)=="number" and q.x>=0 and q.x<=100)
+          end
+          FF._worldQuestCache=nil
+          local withQuest=FF:WorldQuestCandidates({level=17,quests={{id=871}}},1413,false,{},{})
+          for _,q in ipairs(withQuest) do assert(q.id~=871, "Active quest leaked into discovery") end
+          FF._worldQuestCache=nil
+          local browsed=FF:WorldQuestCandidates({level=17,quests={}},1442,true,{},{})
+          assert(#browsed>0, "World browse should yield suitable quest pickups")
+          print("World coverage checked: "..count.." documented quests, "..nzone.." map areas.")
+          LUA
+
       - name: Build CurseForge-ready ZIP
         shell: python
         run: |
