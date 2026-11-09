@@ -299,7 +299,7 @@ function FF:MakeSkills(p)
     -- Compact, information-dense recipe workbench. All icon textures, recipes
     -- and ingredient amounts come from the player's game client, never artwork mocks.
     v.recipeButton=button(v.coach,"OPEN RECIPE WORKBENCH",18,399,574,28,function()
-        v.recipes:Show(); FF:Refresh()
+        v.recipes:Show(); if FF.TryCaptureRecipes then FF:TryCaptureRecipes() end; FF:Refresh()
     end)
     v.recipes=panel(p,14,9,624,490)
     v.recipes:SetFrameStrata("DIALOG")
@@ -382,11 +382,7 @@ function FF:MakeSkills(p)
     v.recStep=label(plan,"",12,33,580,29,12,C.white)
     v.recClose=button(v.recipes,"BACK TO SKILLS",10,445,160,29,function() v.recipes:Hide() end)
     v.recRescan=button(v.recipes,"REFRESH RECIPES",182,445,195,29,function()
-        if type(GetNumTradeSkills)=="function" and TradeSkillFrame and TradeSkillFrame:IsShown() then
-            FF:CaptureRecipeFlow("trade")
-        elseif type(GetNumCrafts)=="function" and CraftFrame and CraftFrame:IsShown() then
-            FF:CaptureRecipeFlow("craft")
-        else FF:Message("Open your profession window first to update known recipes.") end
+        if FF.TryCaptureRecipes then FF:TryCaptureRecipes() end
     end)
     v.recBags=button(v.recipes,"OPEN BAGS",389,445,225,29,function()
         if type(ToggleAllBags)=="function" then ToggleAllBags()
@@ -873,7 +869,7 @@ function FF:UpdateUI()
     if data then
         v.recStatus:SetText(shorten(data.name,30).."  |  "..#data.recipes.." known recipes observed  |  Open the profession window to refresh")
     else
-        v.recStatus:SetText("Open a crafting profession window to load real recipes and reagents.")
+        v.recStatus:SetText(self.recipeFlowStatus or "Open a crafting profession window, then press Refresh Recipes.")
     end
     for i,b in ipairs(v.recRows) do
         local at=(page-1)*5+i

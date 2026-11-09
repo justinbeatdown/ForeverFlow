@@ -12,6 +12,48 @@ local function linkID(link)
     if type(link)~='string' then return nil end
     return tonumber(link:match('item:(%d+)'))
 end
+local function modernCollect()
+    if not C_TradeSkillUI or type(C_TradeSkillUI.GetAllRecipeIDs)~='function' then return nil end
+    local ids=call(C_TradeSkillUI.GetAllRecipeIDs)
+    if type(ids)~='table' or #ids==0 then return nil end
+    local name=call(C_TradeSkillUI.GetTradeSkillLine)
+    if type(name)~='string' then name='Profession' end
+    local recipes={}
+    for _,id in ipairs(ids) do
+        if #recipes>=700 then break end
+        local info=call(C_TradeSkillUI.GetRecipeInfo,id)
+        if type(info)=='table' and type(info.name)=='string' and not info.isHeader then
+            local schematic=call(C_TradeSkillUI.GetRecipeSchematic,id,false)
+            local items=type(schematic)=='table' and schematic.reagentSlotSchematics or {}
+            local reagents={}
+            local missingTotal=0
+            for _,slot in ipairs(items or {}) do
+                if #reagents>=16 then break end
+                local reagent=type(slot)=='table' and slot.reagents and slot.reagents[1]
+                if reagent then
+                    local itemID=tonumber(reagent.itemID)
+                    local need=tonumber(slot.quantityRequired or reagent.quantityRequired) or 0
+                    local owned=itemID and tonumber(call(GetItemCount,itemID)) or 0
+                    owned=owned or 0
+                    local label=itemID and call(GetItemInfo,itemID) or ('Item '..tostring(itemID or '?'))
+                    local link=itemID and select(2,call(GetItemInfo,itemID)) or nil
+                    local texture=itemID and call(GetItemIcon,itemID) or nil
+                    local missing=math.max(0,need-owned)
+                    missingTotal=missingTotal+missing
+                    reagents[#reagents+1]={name=label,need=need,owned=owned,missing=missing,link=link,id=itemID,texture=texture}
+                end
+            end
+            local outputID=info.itemID or (schematic and schematic.outputItemID)
+            local link=outputID and select(2,call(GetItemInfo,outputID)) or nil
+            recipes[#recipes+1]={name=info.name,index=id,source='modern',link=link,id=outputID,
+               texture=info.icon or info.iconID or (outputID and call(GetItemIcon,outputID)),
+               difficulty=info.difficulty or 'unknown',available=tonumber(info.numAvailable) or 0,
+               reagents=reagents,missingTotal=missingTotal}
+        end
+    end
+    if #recipes==0 then return nil end
+    return {name=name,source='modern',recipes=recipes,count=#recipes,observed=GetTime and GetTime() or 0}
+end
 local function collect(source)
     local trade=source=='trade'
     local total=tonumber(call(trade and GetNumTradeSkills or GetNumCrafts)) or 0
@@ -48,20 +90,47 @@ local function collect(source)
     return {name=line,source=source,recipes=recipes,count=#recipes,observed=GetTime and GetTime() or 0}
 end
 function FF:CaptureRecipeFlow(source)
-    if not self.char or not self.session then return end
-    if source=='trade' and type(GetNumTradeSkills)~='function' then return end
-    if source=='craft' and type(GetNumCrafts)~='function' then return end
-    local data=collect(source)
-    if data.count==0 then return end
+    if not self.char then return false end
+    local data
+    local legacy=source=='trade' and type(GetNumTradeSkills)=='function'
+       or source=='craft' and type(GetNumCrafts)=='function'
+    if legacy then data=collect(source) end
+    if not data or data.count==0 then data=modernCollect() end
+    if not data or data.count==0 then
+        self.recipeFlowStatus='No recipes returned yet. Keep the profession window open and press Refresh Recipes.'
+        if self.Refresh then self:Refresh() end
+        return false
+    end
     local previous=self.recipeFlow
     local changed=not previous or previous.name~=data.name or previous.source~=data.source
     self.recipeFlow=data
+    self.recipeFlowStatus=data.count..' recipes loaded from '..data.source..' profession API'
     if changed then
         self.char.recipeFlowPage=1
         self.char.recipeFlowSelected=1
         self.char.recipeReagentPage=0
     end
     if self.Refresh then self:Refresh() end
+    return true
+end
+function FF:TryCaptureRecipes()
+    -- Profession events may fire before the recipes have populated; retry from
+    -- game events, the Refresh control, and while the workbench is visible.
+    local trade=(TradeSkillFrame and TradeSkillFrame.IsShown and TradeSkillFrame:IsShown())
+    local craft=(CraftFrame and CraftFrame.IsShown and CraftFrame:IsShown())
+    if trade then return self:CaptureRecipeFlow('trade') end
+    if craft then return self:CaptureRecipeFlow('craft') end
+    if C_TradeSkillUI and type(C_TradeSkillUI.GetAllRecipeIDs)=='function' then
+        return self:CaptureRecipeFlow('modern')
+    end
+    if type(GetNumTradeSkills)=='function' and (tonumber(call(GetNumTradeSkills)) or 0)>0 then
+        return self:CaptureRecipeFlow('trade')
+    end
+    if type(GetNumCrafts)=='function' and (tonumber(call(GetNumCrafts)) or 0)>0 then
+        return self:CaptureRecipeFlow('craft')
+    end
+    self.recipeFlowStatus='Open a crafting profession window, then press Refresh Recipes.'
+    return false
 end
 function FF:RecipeFlowSelected()
     local data=self.recipeFlow
