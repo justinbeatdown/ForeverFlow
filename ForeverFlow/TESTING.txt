@@ -1,0 +1,23 @@
+FOREVERFLOW 0.5.1 — IN-GAME TEST CHECKLIST
+=========================================
+[ ] Login: compact 302x89 Live Guide appears; dashboard remains optional.
+[ ] Live Guide & minimap use the original castle-and-path ForeverFlow crest (NOT a generic compass).
+[ ] The minimap badge is circular with transparent corners; left-click opens dashboard.
+[ ] Open dashboard: current next quest is automatically watched and native-focused.
+[ ] Verify the recommended quest is highlighted in your quest log / map and the native quest destination follows it.
+[ ] Finish and turn in that quest: a new recommendation is watched and focused without pressing TRACK/PIN.
+[ ] When objective coordinates are available, native quest focus follows them; otherwise no fake pin appears.
+[ ] /flow follow off: quest and focus stay under your control.
+[ ] /flow follow on: follows latest recommendation again.
+[ ] Move a map pin yourself; ForeverFlow does not take it back every six seconds.
+[ ] /flow hud normal: expanded Guide has MAP, NEXT, DETAILS.
+[ ] /flow hud tiny: compact ribbon. Click v to expand and ^ to compact.
+[ ] Right-click HUD size toggle: collapse to header (click + to reopen).
+[ ] Dashboard Today, Leveling, Gold, Skills, Character, Settings tabs work.
+[ ] /flow debug: shows auto-follow state and last error.
+
+If something fails: /console scriptErrors 1, /reload, /flow debug.
+Send error text and a screenshot of the recommended quest + default tracker.
+
+Note: quest focus and automatic waypoints are built on the Forever client API.
+If the game refuses them (or supplies no coordinates), the addon will not invent a route.

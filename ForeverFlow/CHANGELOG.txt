@@ -1,0 +1,8 @@
+ForeverFlow v0.5.1 — Smart Follow + Ribbon HUD
+- Auto-watch and native-focus each new recommended quest where the Forever client permits.
+- Quest focus refreshes on recommendation/objective changes, not every polling tick.
+- Quest/map focus can be disabled with /flow follow off (or Settings), and does not fight manual changes every six seconds.
+- Keeps custom user waypoints intact when native quest focus is working.
+- Compact 302x89 Live Guide with fewer controls always on screen; expanded mode offers details and manual buttons.
+- Original approved ForeverFlow brand crest in the minimap and Live Guide.
+- Preserves dashboard visual theme, character data and settings.
