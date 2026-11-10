@@ -149,6 +149,13 @@ jobs:
           print("Verified 72 classic race/class combinations and 16 profession profiles/fallbacks.")
           LUA
 
+      - name: Test six-tab premium UI and modern recipe APIs
+        shell: bash
+        run: |
+          set -euo pipefail
+          lua5.4 tests/ui_smoke.lua
+          lua5.4 tests/recipe_api.lua
+
       - name: Build CurseForge-ready ZIP
         shell: python
         run: |
