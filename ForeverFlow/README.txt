@@ -1,3 +1,10 @@
+ForeverFlow v0.5.6 Beta 6 — Concept-Matched Native UI (TEST BUILD, not public)
+Install with WoW closed: extract ForeverFlow/ into Interface/AddOns/ForeverFlow/.
+Open /flow, then Skills to test the revised profession workspace. Open a crafting window in the game and press Refresh to read real client recipes, reagent names/quantities and item icons.
+All displayed crafting data comes from game APIs. Prices, zone-specific material routes, per-craft skill-up probabilities and unavailable recipes are not fabricated.
+The approved visual concept was an illustration, not a screenshot. This build implements its basic three-column architecture in native Lua; precise appearance and the server's profession APIs still need in-game validation.
+CurseForge remains on public v0.5.5; do not promote this beta through the release branch.
+
 ForeverFlow v0.5.5 | WoW: Forever (Interface 16001)
 
 Install:

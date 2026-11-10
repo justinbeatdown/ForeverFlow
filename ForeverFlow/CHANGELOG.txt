@@ -1,3 +1,12 @@
+v0.5.6 Beta 6 — Concept-Matched Native UI (development only)
+- Replaced the old faux-premium sidebar/dashboard with a top-tab WoW-style shell using approved ForeverFlow brand artwork and minimap compass icon.
+- Rebuilt Skills into the approved composition: profession rail with native icons and progress, recipe filters/table, selected craft and Have/Need reagent inspector, multi-step profession flow and crafting status.
+- Recipe filter buttons now actually filter live observed recipes; native item tooltips and icons are retained. Selecting a different profession no longer mislabels the last opened profession's recipes.
+- Footer controls open the game's profession interface/bags, select recipes, and mark a recipe for materials tracking. No automated crafting or fake market valuations.
+- Non-Skills tabs retain existing features in the expanded native WoW-style shell with contextual information.
+- Mock UI composition and simulated recipe/missing-reagent behavior verified; actual in-game UI and game profession API still require user testing.
+- Leave CurseForge public v0.5.5 untouched. Beta 6 is NOT a public release.
+
 v0.5.6 Beta 5 — Premium Profession Flow & UI (development only)
 - Actual top navigation, wide dashboard and contextual cards, replacing the old cramped side rail.
 - Skills defaults to a three-column native profession workbench with skill ranks, observed recipes,
