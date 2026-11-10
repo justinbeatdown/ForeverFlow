@@ -1,8 +1,9 @@
--- ForeverFlow 0.5.6 Beta 6: native, concept-inspired profession studio.
+-- ForeverFlow 0.5.6 Beta 8: one production UI shell and profession workbench.
 -- Gameplay values and item textures are read from the client; no fabricated
 -- prices, recipes, material locations, or estimated skill-up counts.
 local _,FF=...
 local unpack=unpack or table.unpack
+local legacyToday=FF.MakeToday
 local legacySkills=FF.MakeSkills
 local legacyCreate=FF.CreateUI
 local legacyTab=FF.ShowTab
@@ -247,6 +248,77 @@ function FF:MakePremiumWorkbench(page)
  return u
 end
 
+-- The Today page is now a first-class handcrafted studio as well.  Retain
+-- the original data-bound controls in an unseen container for compatibility,
+-- rather than overlaying the old dashboard under a cosmetic frame.
+function FF:MakePremiumToday(page)
+ local root=surface(page,0,0,1116,597,.38,'WindowBG.tga')
+ root:SetFrameLevel(page:GetFrameLevel()+30)
+ local u={root=root}
+ -- A quick-action rail mirrors the profession navigator: one consistent
+ -- information hierarchy throughout the addon.
+ local rail=surface(root,9,9,215,577,.34)
+ label(rail,'YOUR ADVENTURE',15,12,188,24,15,GOLD)
+ sep(rail,12,40,190,.42)
+ u.now=button(rail,'CURRENT QUEST',10,54,195,57,function()FF:TrackQuest()end)
+ u.map=button(rail,'QUEST MAP',10,120,195,57,function()FF:MapAction()end)
+ u.next=button(rail,'NEXT SUGGESTION',10,186,195,57,function()FF:SkipQuest()end)
+ sep(rail,12,263,190,.27)
+ label(rail,'PLAYSTYLE',15,274,180,24,12,GOLD)
+ u.priority={}
+ for i,item in ipairs({{'balanced','BALANCED'},{'level','FAST LEVELING'},{'gold','MORE GOLD'}}) do
+  u.priority[item[1]]=button(rail,item[2],10,309+(i-1)*44,195,37,function()FF:SetPriority(item[1])end)
+ end
+ label(rail,'Live recommendations; you control every action.',15,490,185,67,11,MUTED)
+ -- Hero and action panels use WoW-style gold hairline separators, not
+ -- large unrelated cards or text-only filler.
+ u.icon=art(root,246,19,38,'Interface\\Icons\\INV_Misc_Map_01')
+ label(root,'TODAY  /  YOUR NEXT BEST ACTION',291,15,520,25,19,GOLD)
+ u.zone=label(root,'',293,44,635,23,12,MUTED)
+ u.xp=label(root,'',902,16,180,22,12,GOLD,'RIGHT')
+ u.xpBar=bar(root,866,47,224,11)
+ sep(root,240,72,855,.45)
+ local hero=surface(root,240,85,552,239,.40)
+ label(hero,'CURRENT QUEST',16,12,512,21,12,GOLD)
+ sep(hero,13,39,525,.30)
+ u.kind=label(hero,'',17,49,500,22,12,MUTED)
+ u.title=label(hero,'',16,77,508,35,23,TEXT)
+ u.progress=label(hero,'',17,121,495,25,13,TEXT)
+ u.where=label(hero,'',17,149,510,36,11,MUTED)
+ u.reason=label(hero,'',17,191,512,38,11,GOLD)
+ local info=surface(root,802,85,294,239,.38)
+ label(info,'CHARACTER STATUS',14,12,270,22,13,GOLD)
+ sep(info,13,40,268,.31)
+ u.character=label(info,'',16,54,263,33,15,TEXT)
+ u.questCount=label(info,'',16,99,264,28,12,TEXT)
+ u.bags=label(info,'',16,132,263,27,12,TEXT)
+ u.durability=label(info,'',16,165,260,26,12,TEXT)
+ u.money=label(info,'',16,198,261,26,12,GOLD)
+ local route=surface(root,240,336,552,193,.37)
+ label(route,'YOUR ROUTE  /  WHAT COMES NEXT',15,11,524,24,14,GOLD)
+ sep(route,13,40,526,.30)
+ u.route=label(route,'',16,53,519,59,13,TEXT)
+ u.after=label(route,'',16,114,516,39,11,MUTED)
+ u.pickups=button(route,'FIND PICKUPS',13,155,174,30,function()FF:OpenRouteDiscovery()end)
+ u.why=button(route,'WHY THIS ROUTE?',195,155,168,30,function()FF:ToggleRouteDetails()end)
+ u.skills=button(route,'PROFESSIONS',371,155,168,30,function()FF:ShowTab('skills')end)
+ local materials=surface(root,802,336,294,193,.37)
+ label(materials,'YOUR NEXT GAIN',14,11,260,24,14,GOLD)
+ sep(materials,13,40,267,.30)
+ u.material=label(materials,'',15,52,261,93,12,TEXT)
+ button(materials,'OPEN GOLD & MATERIALS',13,154,267,30,function()FF:ShowTab('gold')end)
+ u.footer=label(root,'REAL QUESTS   •   REAL ITEMS   •   NO AUTOMATED GAMEPLAY',243,546,845,25,11,MUTED)
+ return u
+end
+function FF:MakeToday(page)
+ local hidden=CreateFrame('Frame',nil,page)
+ hidden:SetPoint('TOPLEFT',page,'TOPLEFT',0,0);hidden:SetSize(652,506)
+ local v=legacyToday(self,hidden)
+ hidden:Hide();v.legacyContainer=hidden
+ v.premium=self:MakePremiumToday(page)
+ return v
+end
+
 function FF:MakeSkills(page)
  -- Legacy UI.lua still needs its skill controls for its data bindings. Build
  -- them in an invisible sibling container rather than under the visible page;
@@ -290,11 +362,11 @@ function FF:CreateUI()
  self.premiumBottom=surface(win,14,732,1132,23,.24,'ButtonBG.tga')
  self.premiumBottom:SetFrameLevel(win:GetFrameLevel()+17)
  label(self.premiumBottom,'FOREVERFLOW    •    YOU PLAY, WE GUIDE',12,1,510,21,10,MUTED)
- label(self.premiumBottom,'WoW FOREVER  /  0.5.6 BETA 6',835,1,281,21,10,MUTED,'RIGHT')
+ self.premiumVersion=label(self.premiumBottom,'WoW FOREVER  /  '..tostring(self.version or 'development'),835,1,281,21,10,MUTED,'RIGHT')
  -- Keep each game page above the background and place content below the header.
  for tab,page in pairs(self.pages) do
   page:ClearAllPoints()
-  if tab=='skills' then
+  if tab=='skills' or tab=='today' then
    page:SetPoint('TOPLEFT',win,'TOPLEFT',22,-111)
    page:SetSize(1116,602)
   else
@@ -308,20 +380,8 @@ function FF:CreateUI()
  self.premiumInfo:SetFrameLevel(win:GetFrameLevel()+7)
  self.premiumCharacter=label(self.premiumInfo,'',13,5,835,32,13,TEXT)
  self.premiumXP=label(self.premiumInfo,'',870,5,230,32,12,GOLD,'RIGHT')
- -- A restrained right inspector makes legacy tabs less text-wall-like.
+ -- Every tab owns a full-width premium page. No legacy right-hand overlays.
  self.premiumContexts={}
- for _,name in ipairs({'today','leveling','gold','character','settings'}) do
-  local p=self.pages[name]
-  local rail=surface(p,656,6,439,493,.38)
-  label(rail,name=='gold' and 'GOLD & MATERIALS' or 'CHARACTER CONTEXT',15,11,401,24,13,GOLD)
-  sep(rail,14,41,409,.35)
-  local a=label(rail,'',17,59,398,41,15,TEXT)
-  local b=label(rail,'',17,113,398,68,12,MUTED)
-  sep(rail,14,196,409,.23)
-  local c=label(rail,'',17,209,395,118,12,TEXT)
-  button(rail,'OPEN PROFESSION FLOW',15,435,409,37,function()FF:ShowTab('skills')end)
-  self.premiumContexts[name]={a=a,b=b,c=c}
- end
  if self.legacyChrome then self.legacyChrome:Hide() end
  self:ShowTab(self.char.activeTab or 'today')
 end
@@ -331,7 +391,7 @@ function FF:ShowTab(name)
  if self.premiumTabs then
   for tab,b in pairs(self.premiumTabs) do active(b,tab==name) end
  end
- if self.premiumInfo then self.premiumInfo:SetShown(name~='skills') end
+ if self.premiumInfo then self.premiumInfo:SetShown(name~='skills' and name~='today') end
  if name=='skills' and self.TryCaptureRecipes and not (self.recipeFlow and #self.recipeFlow.recipes>0) then
   -- Game-side API may not have loaded a profession; this is an attempt, not a promise.
   self:TryCaptureRecipes()
@@ -361,6 +421,33 @@ function FF:UpdatePremiumStudio()
     v.c:SetText(table.concat(lines,'\n'))
    else v.c:SetText('Open Skills to inspect recipes, reagents and your next profession step.') end
   end
+ end
+ local t=self.views.today and self.views.today.premium
+ if t then
+  local plan=self.plan or {}
+  local advice=self.routeAdvice or {}
+  t.kind:SetText(trim(plan.category or 'QUESTING',40))
+  t.title:SetText(trim(plan.title or 'Ready for your next adventure',47))
+  t.progress:SetText(trim(plan.detail or 'Open your quest log to choose a route.',68))
+  t.where:SetText(trim(plan.where or (s.zone or 'Map not available'),91))
+  t.reason:SetText(trim(advice.reason or 'Based on the current live quest log.',100))
+  t.zone:SetText(tostring(s.zone or 'Unknown zone')..'  /  Level '..tostring(s.level or '?'))
+  t.xp:SetText(s.xpPercent and (math.floor(s.xpPercent+.5)..'% TO NEXT LEVEL') or 'XP UNAVAILABLE')
+  t.xpBar(s.xpPercent and s.xpPercent/100 or 0)
+  t.character:SetText('Level '..tostring(s.level or '?')..'  '..tostring(s.className or 'Adventurer'))
+  t.questCount:SetText('Quests  '..tostring(s.questCount or '?')..'   •   Ready  '..tostring(s.questComplete or 0))
+  t.bags:SetText('Bag slots free  '..tostring(s.bagFree or '?')..' / '..tostring(s.bagTotal or '?'))
+  t.durability:SetText('Durability  '..tostring(s.durability or '?')..'%')
+  t.money:SetText('Gold  '..(self.MoneyText and self:MoneyText(s.money or 0) or '?'))
+  t.route:SetText(trim(advice.reason or 'Follow your current objectives before taking a distant quest chain.',110))
+  t.after:SetText(trim(advice.next or 'Check nearby quests after finishing your current objective.',97))
+  local selected=self.RecipeFlowSelected and self:RecipeFlowSelected()
+  local shopping=self.RecipeFlowShoppingList and self:RecipeFlowShoppingList() or {}
+  if selected and #shopping>0 then
+   t.material:SetText('For '..trim(selected.name,28)..':\nNeed '..tostring(shopping[1].need)..' × '..trim(shopping[1].name,34)..'.\nOpen Skills for reagents and next steps.')
+  elseif selected then t.material:SetText('Materials ready for '..trim(selected.name,31)..' based on your last recipe scan.\nOpen Skills to plan a craft.')
+  else t.material:SetText('Your professions and gathering can contribute to every quest route.\nOpen Skills to load real recipes and materials.') end
+  for k,b in pairs(t.priority) do active(b,self.char.priority==k) end
  end
  local view=self.views.skills
  local u=view and view.premium

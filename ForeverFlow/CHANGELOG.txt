@@ -1,11 +1,22 @@
-v0.5.6 Beta 6 — Concept-Matched Native UI (development only)
+0.5.6-beta9 — Six-tab native design-system overhaul (development only)
+- Replaced legacy Leveling, Gold, Character and Settings visual pages with cohesive premium workspaces.
+- Today and Skills retain their native premium layouts: quest context, recipe rows, real item textures, and materials inspector.
+- Quest Planner now gives an actual accepted/discovered quest list, a selected action panel, and usable browse/save/skip/pin/navigation controls.
+- Gold now has session totals, target controls, gathering resources and live recipe material shopping list.
+- Character has level-up checklist and session context; Settings has immediately actionable toggles and layout tools.
+- All six tabs now use the same panel chrome and navigation with hidden legacy controls (retained for data binding only).
+- Footer and TOC version are 0.5.6-beta9. No public CurseForge release.
+- User-facing data comes from actual game APIs or reported offline quest sources; no fabricated prices or routes.
+- In-game visual matching and full client recipe capture remain to be verified.
+
+v0.5.6 Beta 9 — Concept-Matched Native UI (development only)
 - Replaced the old faux-premium sidebar/dashboard with a top-tab WoW-style shell using approved ForeverFlow brand artwork and minimap compass icon.
 - Rebuilt Skills into the approved composition: profession rail with native icons and progress, recipe filters/table, selected craft and Have/Need reagent inspector, multi-step profession flow and crafting status.
 - Recipe filter buttons now actually filter live observed recipes; native item tooltips and icons are retained. Selecting a different profession no longer mislabels the last opened profession's recipes.
 - Footer controls open the game's profession interface/bags, select recipes, and mark a recipe for materials tracking. No automated crafting or fake market valuations.
 - Non-Skills tabs retain existing features in the expanded native WoW-style shell with contextual information.
 - Mock UI composition and simulated recipe/missing-reagent behavior verified; actual in-game UI and game profession API still require user testing.
-- Leave CurseForge public v0.5.5 untouched. Beta 6 is NOT a public release.
+- Leave CurseForge public v0.5.5 untouched. Beta 9 is NOT a public release.
 
 v0.5.6 Beta 5 — Premium Profession Flow & UI (development only)
 - Actual top navigation, wide dashboard and contextual cards, replacing the old cramped side rail.
@@ -173,4 +184,4 @@ ForeverFlow 0.5.5 Beta 3 - Discover Quests (test build)
 - Uses original in-game textures and the approved minimap icon. No screenshot/mockup is bundled as addon UI.
 - No public CurseForge upload.
 
-0.5.6 Beta 7 — Remove duplicated UI shell; legacy header/sidebar/status hidden, legacy Skills controls isolated. Active profession studio uses approved header/nav, recipe table, reagents and flow; no new synthetic data.
+0.5.6 Beta 9 — Remove duplicated UI shell; legacy header/sidebar/status hidden, legacy Skills controls isolated. Active profession studio uses approved header/nav, recipe table, reagents and flow; no new synthetic data.

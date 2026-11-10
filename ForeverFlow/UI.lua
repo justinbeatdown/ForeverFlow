@@ -471,8 +471,8 @@ function FF:CreateGuide()
     -- Compact emblem isolates the approved logo’s castle/path scene so it remains
     -- legible at 30px; full official mark is preserved on larger UI surfaces.
     -- Header divider starts at 38px, below the 34px badge edge.
-    g.badge=icon(g,"GuideLogoSmall.tga",8,4,30,30)
-    label(g,"FOREVER|cffffbd5cFLOW|r",45,7,130,20,12,C.white)
+    g.badge=icon(g,"MinimapIconRound.tga",8,4,30,30)
+    label(g,"ForeverFlow",45,7,130,20,13,C.white)
     g.follow=label(g,"AUTO-FOLLOW",167,10,82,14,9,C.gold,"RIGHT")
     g.collapse=button(g,"v",255,7,20,20,function(_,mouse)
         if mouse=="RightButton" then

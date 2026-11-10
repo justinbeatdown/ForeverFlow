@@ -1,6 +1,6 @@
 -- ForeverFlow 0.5.6-beta1 / player-first HUD. UI and suggestions only: no movement, combat or selling automation.
 local addonName, FF = ...
-FF.version = "0.5.6-beta7"
+FF.version = "0.5.6-beta9"
 FF.addon = addonName or "ForeverFlow"
 FF.media = "Interface\\AddOns\\ForeverFlow\\Media\\"
 FF.colors = {
@@ -483,7 +483,10 @@ events:SetScript("OnEvent",function(_,event,arg1)
         FF.char.trainingChecks={false,false,false}
         FF.char.trainingLevel=tonumber(arg1) or (UnitLevel and UnitLevel("player") or 1)
         if not FF.db.quiet then FF:Message("Level up! ForeverFlow updated your plan.") end
-    elseif event=="BAG_UPDATE_DELAYED" then FF:RecordInventory(false) end
+    elseif event=="BAG_UPDATE_DELAYED" then
+        FF:RecordInventory(false)
+        if FF.RecipeFlowRefreshInventory then FF:RecipeFlowRefreshInventory() end
+    end
     FF:RecordMoneyAndXP()
     FF:Refresh()
 end)

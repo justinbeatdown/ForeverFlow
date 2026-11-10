@@ -1,4 +1,4 @@
-v0.5.6 Beta 6 — IN-GAME UI ACCEPTANCE
+v0.5.6 Beta 9 — IN-GAME UI ACCEPTANCE
 [ ] Open /flow: real top navigation and approved circular ForeverFlow icon/wordmark; old sidebar hidden.
 [ ] On Skills, see profession rail, selected profession skill bar, recipe table, reagent inspector and three-step profession flow.
 [ ] Open Alchemy in game; refresh; verify actual known recipes, item icons and native reagent tooltips.
@@ -150,4 +150,17 @@ BETA 5 PREMIUM WORKBENCH TEST
 - Verify compact Live Guide and automatic quest turn-in selection are preserved.
 - Non-automated crafting only. Do not publish until tested on the WoW Forever client.
 
-Beta 7 regression: legacy Chrome and skills container must stay hidden, premium header/navigation and premium Skills workbench visible; test Today, Leveling, Gold and Skills; verify no duplicated controls on any tab.
+Beta 9 regression: legacy Chrome and skills container must stay hidden, premium header/navigation and premium Skills workbench visible; test Today, Leveling, Gold and Skills; verify no duplicated controls on any tab.
+
+BETA 9 COMPLETE UI CHECKLIST
+- Verify all SIX tabs use the exact same studio frame and none display legacy 652px panels.
+- Open /flow -> Today, Leveling (My Quests and Discover), Gold, Skills,
+  Character, Settings, and the floating Live Guide.
+- Confirm quest select/map, save/skip, gold targets, bags, checklist toggles,
+  follow/guide/minimap settings and recipe browsing remain clickable.
+- Open the real Forever Alchemy window, then Skills, and verify the modern
+  profession recipe API gives actual known recipes and reagent have/need counts.
+- Loot/buy materials and confirm the recipe counts update with bag events.
+- Check native item tooltips, media edges and window scaling.
+- No invented prices, source locations or guaranteed quest prereqs.
+- This is a development beta. CurseForge v0.5.5 must remain untouched.

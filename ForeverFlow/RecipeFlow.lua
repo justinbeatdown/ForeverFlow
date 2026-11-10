@@ -7,6 +7,31 @@ local function call(fn, ...)
     local ok,a,b,c,d,e,f=pcall(fn,...)
     if ok then return a,b,c,d,e,f end
 end
+-- Forever uses modern namespaced item APIs. Legacy globals are optional.
+local function itemCount(id)
+ if not id then return nil end
+ if C_Item and type(C_Item.GetItemCount)=='function' then
+  local n=call(C_Item.GetItemCount,id)
+  if type(n)=='number' then return n end
+ end
+ return call(GetItemCount,id)
+end
+local function itemInfo(id)
+ if not id then return nil,nil end
+ if C_Item and type(C_Item.GetItemInfo)=='function' then
+  local name,link=call(C_Item.GetItemInfo,id)
+  if name then return name,link end
+ end
+ return call(GetItemInfo,id)
+end
+local function itemIcon(id)
+ if not id then return nil end
+ if C_Item and type(C_Item.GetItemIconByID)=='function' then
+  local icon=call(C_Item.GetItemIconByID,id)
+  if icon then return icon end
+ end
+ return call(GetItemIcon,id)
+end
 local function lower(s) return type(s)=='string' and s:lower() or '' end
 local function linkID(link)
     if type(link)~='string' then return nil end
@@ -37,13 +62,13 @@ local function modernCollect()
                 if #reagents>=16 then return end
                 itemID=tonumber(itemID)
                 need=math.max(0,tonumber(need) or 0)
-                if owned==nil and itemID then owned=call(GetItemCount,itemID) end
+                if owned==nil and itemID then owned=itemCount(itemID) end
                 owned=math.max(0,tonumber(owned) or 0)
                 local itemName,itemLink
-                if itemID then itemName,itemLink=call(GetItemInfo,itemID) end
+                if itemID then itemName,itemLink=itemInfo(itemID) end
                 label=label or itemName or (itemID and ('Item #'..itemID)) or 'Unknown reagent'
                 link=link or itemLink
-                texture=texture or (itemID and call(GetItemIcon,itemID))
+                texture=texture or (itemID and itemIcon(itemID))
                 local missing=math.max(0,need-owned)
                 missingTotal=missingTotal+missing
                 reagents[#reagents+1]={name=label,need=need,owned=owned,missing=missing,
@@ -66,23 +91,27 @@ local function modernCollect()
             if #reagents==0 and type(api.GetRecipeNumReagents)=='function' then
                 local n=tonumber(call(api.GetRecipeNumReagents,id)) or 0
                 for i=1,math.min(n,16) do
-                    local r=call(api.GetRecipeReagentInfo,id,i)
-                    if type(r)=='table' then
+                    local nameOrStruct,iconID,required,availableCount=call(api.GetRecipeReagentInfo,id,i)
+                    if type(nameOrStruct)=='table' then
+                        local r=nameOrStruct
                         addReagent(r.itemID,r.quantityRequired or r.quantity,r.numAvailable,
                             r.icon or r.iconID,r.name,r.itemLink)
+                    elseif type(nameOrStruct)=='string' then
+                        -- The Forever-compatible older modern API returns FOUR separate values.
+                        addReagent(nil,required,availableCount,iconID,nameOrStruct,nil)
                     end
                 end
             end
             local outputID=info.itemID or (schematic and schematic.outputItemID)
             local outputLink
-            if outputID then _,outputLink=call(GetItemInfo,outputID) end
+            if outputID then _,outputLink=itemInfo(outputID) end
             local available=tonumber(info.numAvailable) or tonumber(call(api.GetRecipeNumAvailable,id)) or 0
             local diff=info.relativeDifficulty
             local diffName=({[0]='optimal',[1]='medium',[2]='easy',[3]='trivial'})[diff] or
                 (info.canSkillUp==true and 'skill-up' or 'unknown')
             recipes[#recipes+1]={name=info.name,index=id,source='modern',link=outputLink or info.hyperlink,id=outputID,
                 texture=info.icon or info.iconID or (schematic and schematic.icon) or
-                    (outputID and call(GetItemIcon,outputID)),
+                    (outputID and itemIcon(outputID)),
                 difficulty=diffName,canSkillUp=info.canSkillUp,available=available,
                 reagents=reagents,missingTotal=missingTotal}
         end
@@ -101,7 +130,7 @@ local function collect(source)
         if type(name)=='string' and name~='' and difficulty~='header' and difficulty~='subheader' then
             local output=call((trade and GetTradeSkillItemLink) or (not trade and GetCraftItemLink),i)
             local recipeIcon=call((trade and GetTradeSkillIcon) or (not trade and GetCraftIcon),i)
-            if not recipeIcon and linkID(output) and type(GetItemIcon)=="function" then recipeIcon=call(GetItemIcon,linkID(output)) end
+            if not recipeIcon and linkID(output) then recipeIcon=itemIcon(linkID(output)) end
             local reagents={}
             local n=tonumber(call((trade and GetTradeSkillNumReagents) or (not trade and GetCraftNumReagents),i)) or 0
             local craftable=math.max(0,tonumber(available) or 0)
@@ -146,6 +175,7 @@ function FF:CaptureRecipeFlow(source)
     local changed=not previous or previous.name~=data.name or previous.source~=data.source
     self.recipeFlow=data
     self.recipeFlowStatus=data.count..' recipes loaded from '..data.source..' profession API'
+    if (tonumber(self.char.recipeFlowSelected) or 1)>#data.recipes then self.char.recipeFlowSelected=1 end
     if changed then
         self.char.recipeFlowPage=1
         self.char.recipeFlowSelected=1
@@ -185,6 +215,7 @@ function FF:RecipeFlowSelect(index)
     index=math.max(1,math.min(#self.recipeFlow.recipes,math.floor(tonumber(index) or 1)))
     self.char.recipeFlowSelected=index
     self.char.recipeFlowPage=math.floor((index-1)/5)+1
+    self.char.premiumRecipePage=math.floor((index-1)/6)+1
     self.char.recipeReagentPage=0
     self:Refresh()
 end
@@ -194,6 +225,24 @@ function FF:RecipeFlowPage(step)
     local maxPage=math.max(1,math.ceil(#data.recipes/5))
     self.char.recipeFlowPage=math.max(1,math.min(maxPage,(self.char.recipeFlowPage or 1)+(step or 0)))
     self:Refresh()
+end
+-- Update material ownership directly from the bags without rebuilding a 700-recipe scan.
+-- This makes the workbench react when a player loots, purchases or consumes items.
+function FF:RecipeFlowRefreshInventory()
+ local d=self.recipeFlow
+ if not d or not d.recipes then return end
+ for _,recipe in ipairs(d.recipes) do
+  local missing=0
+  for _,reagent in ipairs(recipe.reagents or {}) do
+   if reagent.id then
+    local owned=itemCount(reagent.id)
+    if type(owned)=='number' then reagent.owned=math.max(0,owned) end
+   end
+   reagent.missing=math.max(0,(tonumber(reagent.need) or 0)-(tonumber(reagent.owned) or 0))
+   missing=missing+reagent.missing
+  end
+  recipe.missingTotal=missing
+ end
 end
 function FF:RecipeFlowShoppingList()
     local recipe=self:RecipeFlowSelected()
@@ -213,6 +262,12 @@ function FF:RecipeFlowTooltip(owner,entry)
     GameTooltip:SetOwner(owner,'ANCHOR_RIGHT')
     if type(entry.link)=='string' and entry.link:find('|Hitem:') then
         local ok=pcall(GameTooltip.SetHyperlink,GameTooltip,entry.link)
+        if not ok then GameTooltip:SetText(entry.name or 'Item') end
+    elseif entry.id and type(GameTooltip.SetItemByID)=='function' then
+        local ok=pcall(GameTooltip.SetItemByID,GameTooltip,entry.id)
+        if not ok then GameTooltip:SetText(entry.name or 'Item') end
+    elseif entry.id and type(GameTooltip.SetHyperlink)=='function' then
+        local ok=pcall(GameTooltip.SetHyperlink,GameTooltip,'item:'..tostring(entry.id))
         if not ok then GameTooltip:SetText(entry.name or 'Item') end
     else
         GameTooltip:SetText(entry.name or 'Recipe')
