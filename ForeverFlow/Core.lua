@@ -1,6 +1,6 @@
 -- ForeverFlow 0.5.6-beta1 / player-first HUD. UI and suggestions only: no movement, combat or selling automation.
 local addonName, FF = ...
-FF.version = "0.5.6-beta9"
+FF.version = "0.5.6-beta10"
 FF.addon = addonName or "ForeverFlow"
 FF.media = "Interface\\AddOns\\ForeverFlow\\Media\\"
 FF.colors = {
