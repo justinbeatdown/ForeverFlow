@@ -1,6 +1,6 @@
 -- ForeverFlow 0.5.6-beta1 / player-first HUD. UI and suggestions only: no movement, combat or selling automation.
 local addonName, FF = ...
-FF.version = "0.5.6-beta3.1"
+FF.version = "0.5.6-beta4"
 FF.addon = addonName or "ForeverFlow"
 FF.media = "Interface\\AddOns\\ForeverFlow\\Media\\"
 FF.colors = {
@@ -480,7 +480,7 @@ events:SetScript("OnUpdate",function(_,delta)
     if not (FF.window:IsShown() or FF.guide:IsShown()) then return end
     if FF.views and FF.views.skills and FF.views.skills.recipes and FF.views.skills.recipes:IsShown() then
         FF.recipePollElapsed=(FF.recipePollElapsed or 0)+delta
-        if FF.recipePollElapsed>=2 and not (FF.recipeFlow and FF.recipeFlow.count>0) then
+        if FF.recipePollElapsed>=4 and not (FF.recipeFlow and FF.recipeFlow.count>0) then
             FF.recipePollElapsed=0
             if FF.TryCaptureRecipes then FF:TryCaptureRecipes() end
         end

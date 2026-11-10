@@ -144,3 +144,11 @@ ForeverFlow 0.5.5 Beta 3 - Discover Quests (test build)
 - Reorganized observed recipe data into compact known-recipes and ingredient panels, with native recipe/reagent icons and item-link hover tooltips.
 - Integrated selection, pagination, missing ingredient amounts, refresh and bag actions.
 - All displayed recipes and quantities are sourced from the game profession window; no simulated auction prices or skills.
+
+0.5.6 beta 4 — Command Center visual redesign (test build)
+- New 874px application shell with consistent left-rail navigation, compact context header, and tab-wide content canvas.
+- Today redesigned with side-by-side Playstyle and Character insight panels, without removing functional actions.
+- Gold redesigned with two-column wallet/session KPI panels, live gathering panel and goal workspace.
+- Skills entrance flows straight to the real recipe workbench; updated titles and empty-state diagnostic.
+- Uses original in-game textures and the approved minimap icon. No screenshot/mockup is bundled as addon UI.
+- No public CurseForge upload.

@@ -97,7 +97,10 @@ function FF:CaptureRecipeFlow(source)
     if legacy then data=collect(source) end
     if not data or data.count==0 then data=modernCollect() end
     if not data or data.count==0 then
-        self.recipeFlowStatus='No recipes returned yet. Keep the profession window open and press Refresh Recipes.'
+        local tradeN=tonumber(call(GetNumTradeSkills)) or 0
+        local craftN=tonumber(call(GetNumCrafts)) or 0
+        local modern=C_TradeSkillUI and type(C_TradeSkillUI.GetAllRecipeIDs)=='function'
+        self.recipeFlowStatus='No client recipes yet (trade '..tradeN..', craft '..craftN..', modern '..(modern and 'yes' or 'no')..'). Keep the profession list open and refresh.'
         if self.Refresh then self:Refresh() end
         return false
     end

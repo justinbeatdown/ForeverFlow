@@ -1,7 +1,7 @@
 -- ForeverFlow 0.5.5 UI | original classic fantasy bronze/black visual theme.
 local _,FF=...
 local C=FF.colors
-local W,H=652,720
+local W,H=874,744
 -- UX refresh: pages need stateful actions, not only read-only snapshots.
 local TAB_NAMES={"today","leveling","gold","skills","character","settings"}
 local TAB_LABELS={"TODAY","LEVELING","GOLD","SKILLS","CHARACTER","SETTINGS"}
@@ -14,7 +14,7 @@ local function skin(f,bg,border,texture)
         insets={left=1,right=1,top=1,bottom=1}})
     local b=border or C.border
     f:SetBackdropColor(1,1,1,1)
-    f:SetBackdropBorderColor(b[1],b[2],b[3],b[4] or 1)
+    f:SetBackdropBorderColor(b[1]*.85,b[2]*.85,b[3]*.85,b[4] or 1)
 end
 local function rule(f,x,y,w,a)
     local t=f:CreateTexture(nil,"OVERLAY")
@@ -56,8 +56,8 @@ local function button(parent,caption,x,y,w,h,cb)
     return f
 end
 local function heading(parent,copy)
-    local f=label(parent,copy,12,10,parent:GetWidth()-24,20,12,C.gold)
-    rule(parent,12,29,parent:GetWidth()-24,.26)
+    local f=label(parent,copy,13,11,parent:GetWidth()-26,20,11,C.gold)
+    rule(parent,13,30,parent:GetWidth()-26,.20)
     return f
 end
 local function meter(parent,x,y,w,h)
@@ -116,24 +116,24 @@ function FF:MakeToday(p)
     button(p,"SET MAP PIN",14,178,195,34,function() FF:MapAction() end)
     button(p,"TRACK QUEST",222,178,195,34,function() FF:TrackQuest() end)
     button(p,"NEXT SUGGESTION",430,178,208,34,function() FF:SkipQuest() end)
-    local focus=panel(p,14,224,624,89)
-    heading(focus,"PLAYSTYLE  /  WHAT SHOULD WE PRIORITIZE?")
+    local focus=panel(p,14,224,302,170)
+    heading(focus,"PLAYSTYLE / ROUTE PRIORITY")
     v.priorities={}
     for i,item in ipairs({{"balanced","BALANCED"},{"level","FAST LEVELING"},{"gold","MORE GOLD"}}) do
-        v.priorities[item[1]]=button(focus,item[2],12+(i-1)*206,37,196,35,function() FF:SetPriority(item[1]) end)
+        v.priorities[item[1]]=button(focus,item[2],12,36+(i-1)*42,278,34,function() FF:SetPriority(item[1]) end)
     end
-    local status=panel(p,14,324,624,83)
+    local status=panel(p,326,224,312,170)
     heading(status,"CHARACTER AT A GLANCE")
-    v.statusA=label(status,"",12,34,290,18,12,C.white)
-    v.statusB=label(status,"",310,34,300,18,12,C.white)
-    v.statusC=label(status,"",12,59,290,18,12,C.white)
-    v.statusD=label(status,"",310,59,300,18,12,C.white)
-    local summary=panel(p,14,417,624,82)
+    v.statusA=label(status,"",15,41,285,20,12,C.white)
+    v.statusB=label(status,"",15,71,285,20,12,C.white)
+    v.statusC=label(status,"",15,101,285,20,12,C.white)
+    v.statusD=label(status,"",15,131,285,20,12,C.white)
+    local summary=panel(p,14,405,624,94)
     heading(summary,"WHAT TO DO AFTER THIS QUEST")
-    v.goldTip=label(summary,"",12,32,596,31,11,C.white)
+    v.goldTip=label(summary,"",12,38,596,32,12,C.white)
     v.routePickups=button(summary,"PICKUPS",443,8,82,22,function() FF:OpenRouteDiscovery() end)
     v.routeExplain=button(summary,"WHY?",531,8,80,22,function() FF:ToggleRouteDetails() end)
-    v.progress=label(summary,"",12,66,596,14,10,C.gold)
+    v.progress=label(summary,"",12,75,596,17,10,C.gold)
     -- An in-window explanation, not four noisy chat messages. Deliberately
     -- overlays the lower panels, preserving the existing 720px window size.
     local details=panel(p,14,259,624,240)
@@ -213,81 +213,85 @@ function FF:MakeLeveling(p)
 end
 function FF:MakeGold(p)
     local v={}
-    local top=panel(p,14,9,624,100)
-    heading(top,"GOLD TRACKER - REAL COIN CHANGES")
-    v.money=label(top,"",12,35,590,30,22,C.white)
-    v.target=label(top,"",12,71,590,20,12,C.muted)
-    local perf=panel(p,14,121,624,119)
-    heading(perf,"YOUR SESSION (UPDATED AUTOMATICALLY)")
-    v.sessionEarned=label(perf,"",12,32,590,20,12,C.white)
-    v.sessionSpent=label(perf,"",12,56,590,20,12,C.white)
-    v.goldPerHour=label(perf,"",12,80,590,25,11,C.muted)
-    local advice=panel(p,14,251,624,116)
-    heading(advice,"YOUR BEST CURRENT GOLD OPPORTUNITY")
-    v.goldCategory=label(advice,"",12,34,594,20,12,C.gold)
-    v.advice=label(advice,"",12,56,594,27,11,C.white)
-    v.bags=button(advice,"OPEN BAGS",12,84,287,26,function()
+    local total=panel(p,14,9,302,137)
+    heading(total,"YOUR WALLET")
+    v.money=label(total,"",14,47,278,40,25,C.white)
+    v.target=label(total,"",14,105,275,23,11,C.muted)
+    local perf=panel(p,326,9,312,137)
+    heading(perf,"SESSION CASH FLOW")
+    v.sessionEarned=label(perf,"",14,42,287,22,12,C.white)
+    v.sessionSpent=label(perf,"",14,71,287,21,12,C.white)
+    v.goldPerHour=label(perf,"",14,101,287,31,10,C.muted)
+    local advice=panel(p,14,157,624,173)
+    heading(advice,"MATERIALS & GATHERING  /  CURRENT OPPORTUNITY")
+    v.goldCategory=label(advice,"",13,40,594,24,14,C.gold)
+    v.advice=label(advice,"",13,72,594,56,12,C.white)
+    v.bags=button(advice,"OPEN BAGS",13,133,287,29,function()
         if type(ToggleAllBags)=="function" then ToggleAllBags()
         elseif type(OpenAllBags)=="function" then OpenAllBags()
-        else FF:Message("Open your bags with the default bag shortcut (B).") end
+        else FF:Message("Open your bags using the default shortcut (B).") end
     end)
-    v.skills=button(advice,"PROFESSION PLAN",313,84,299,26,function() FF:ShowTab("skills") end)
-    local controls=panel(p,14,379,624,120)
-    heading(controls,"GOLD TARGET: AUTOMATIC BY DEFAULT")
-    v.goalFill=meter(controls,12,35,600,9)
-    v.goalDetail=label(controls,"",12,54,588,18,11,C.muted)
-    v.auto=button(controls,"AUTO",12,83,186,29,function() FF.char.goldTarget=0;FF.char.autoGoldTargetCopper=nil;FF:Refresh() end)
-    v.plus5=button(controls,"CURRENT +5G",210,83,193,29,function()
+    v.skills=button(advice,"PROFESSION WORKBENCH",312,133,299,29,function() FF:ShowTab("skills") end)
+    local controls=panel(p,14,341,624,158)
+    heading(controls,"GOLD GOALS  /  SET YOUR NEXT MILESTONE")
+    v.goalFill=meter(controls,13,49,598,12)
+    v.goalDetail=label(controls,"",13,77,588,20,12,C.muted)
+    v.auto=button(controls,"AUTO",13,111,187,34,function() FF.char.goldTarget=0;FF.char.autoGoldTargetCopper=nil;FF:Refresh() end)
+    v.plus5=button(controls,"CURRENT +5G",209,111,194,34,function()
         local money=FF.snapshot and FF.snapshot.money or 0
         FF.char.goldTarget=math.ceil(money/10000)+5;FF:Refresh()
     end)
-    v.plus20=button(controls,"CURRENT +20G",415,83,197,29,function()
+    v.plus20=button(controls,"CURRENT +20G",412,111,199,34,function()
         local money=FF.snapshot and FF.snapshot.money or 0
         FF.char.goldTarget=math.ceil(money/10000)+20;FF:Refresh()
     end)
     return v
 end
+
 function FF:MakeSkills(p)
     local v={}
-    local top=panel(p,14,9,624,176)
-    heading(top,"PROFESSIONS: LIVE SKILL PROGRESS")
+    -- Profession information is a workspace, not a wall of generic advice.
+    local top=panel(p,14,9,302,247)
+    heading(top,"PRIMARY PROFESSIONS")
     v.primary={}
     for i=1,2 do
-        local y=35+(i-1)*64
+        local y=49+(i-1)*92
         local x={}
-        x.name=label(top,"",12,y,350,20,13,C.white)
-        x.level=label(top,"",386,y,223,18,12,C.muted,"RIGHT")
-        x.bar=meter(top,12,y+26,600,11)
+        x.name=label(top,"",14,y,212,28,15,C.white)
+        x.level=label(top,"",221,y+2,65,21,11,C.gold,"RIGHT")
+        x.bar=meter(top,14,y+32,274,12)
         v.primary[i]=x
     end
-    local secondary=panel(p,14,196,624,65)
-    heading(secondary,"SECONDARY SKILLS")
-    v.secondary=label(secondary,"",12,35,590,22,12,C.white)
-    local acquisition=panel(p,14,273,624,105)
-    heading(acquisition,"MATERIALS ACQUIRED THIS SESSION")
-    v.materials=label(acquisition,"",12,34,590,25,18,C.white)
-    v.materialsMore=label(acquisition,"",12,73,590,22,11,C.muted)
-    local tip=panel(p,14,390,624,109)
-    heading(tip,"NEXT SKILL STEP")
-    v.skill=label(tip,"",12,31,596,25,12,C.white)
-    v.gather=label(tip,"",12,54,596,17,10,C.gold)
-    v.goal=button(tip,"GATHER TARGET +10",12,76,296,28,function()
+    local secondary=panel(p,326,9,312,119)
+    heading(secondary,"SECONDARY PROFESSIONS")
+    v.secondary=label(secondary,"",13,44,284,63,12,C.white)
+    local acquisition=panel(p,326,138,312,118)
+    heading(acquisition,"MATERIALS / THIS SESSION")
+    v.materials=label(acquisition,"",13,40,284,28,18,C.white)
+    v.materialsMore=label(acquisition,"",13,76,284,32,11,C.muted)
+    local tip=panel(p,14,268,624,231)
+    heading(tip,"YOUR NEXT PROFESSION STEP")
+    v.skill=label(tip,"",14,47,591,48,14,C.white)
+    v.gather=label(tip,"",14,113,585,31,11,C.gold)
+    v.coachButton=button(tip,"OPEN PROFESSION FLOW",14,157,590,32,function()
+        v.coach:Hide()
+        v.recipes:Show()
+        if FF.TryCaptureRecipes then FF:TryCaptureRecipes() end
+        FF:Refresh()
+    end)
+    v.goal=button(tip,"GATHER TARGET +10",14,197,287,27,function()
         FF.char.gatherTarget=math.min(500,(FF.char.gatherTarget or 20)+10)
         FF:Refresh()
     end)
-    v.professions=button(tip,"OPEN PROFESSIONS",318,76,294,28,function()
+    v.professions=button(tip,"OPEN PROFESSIONS",315,197,289,27,function()
         if type(ToggleProfessions)=="function" then ToggleProfessions()
         elseif type(ToggleSpellBook)=="function" then ToggleSpellBook("professions")
         else FF:Message("Open your Professions panel from the game UI (default K).") end
     end)
-    v.coachButton=button(top,"LEVELING PLAN",414,7,195,24,function()
-        v.coach:SetShown(not v.coach:IsShown())
-        FF:Refresh()
-    end)
     v.coach=panel(p,14,9,624,490)
     v.coach:SetFrameStrata("DIALOG")
     v.coach:SetFrameLevel(p:GetFrameLevel()+8)
-    heading(v.coach,"PROFESSION LEVELING COACH")
+    heading(v.coach,"PROFESSION LEVELING / SKILL ROADMAP")
     v.coachName=label(v.coach,"",18,52,575,28,19,C.white)
     v.coachRank=label(v.coach,"",18,88,575,28,13,C.gold)
     v.coachStep=label(v.coach,"",18,142,573,62,15,C.white)
@@ -304,13 +308,13 @@ function FF:MakeSkills(p)
     v.recipes=panel(p,14,9,624,490)
     v.recipes:SetFrameStrata("DIALOG")
     v.recipes:SetFrameLevel(p:GetFrameLevel()+15)
-    heading(v.recipes,"PROFESSION WORKBENCH")
+    heading(v.recipes,"PROFESSION FLOW  /  LIVE RECIPES")
     v.recStatus=label(v.recipes,"",12,34,600,23,11,C.muted)
 
     local recipesLeft=panel(v.recipes,10,63,295,293)
     local detailsRight=panel(v.recipes,315,63,299,293)
-    heading(recipesLeft,"KNOWN RECIPES")
-    heading(detailsRight,"SELECTED CRAFT")
+    heading(recipesLeft,"KNOWN RECIPES / SKILL-UPS")
+    heading(detailsRight,"RECIPE / REAGENTS")
     v.recRows={}
     for i=1,5 do
         local row=button(recipesLeft,"",9,33+(i-1)*43,276,39,function(self)
@@ -378,7 +382,7 @@ function FF:MakeSkills(p)
     end)
 
     local plan=panel(v.recipes,10,366,604,67)
-    heading(plan,"YOUR NEXT STEP")
+    heading(plan,"WHAT TO DO NEXT / MATERIALS")
     v.recStep=label(plan,"",12,33,580,29,12,C.white)
     v.recClose=button(v.recipes,"BACK TO SKILLS",10,445,160,29,function() v.recipes:Hide() end)
     v.recRescan=button(v.recipes,"REFRESH RECIPES",182,445,195,29,function()
@@ -609,33 +613,47 @@ function FF:CreateUI()
     win:SetScript("OnDragStart",function(self) if not FF.char.locked then self:StartMoving() end end)
     win:SetScript("OnDragStop",function(self) self:StopMovingOrSizing();FF:SavePosition(self,"main") end)
     self.window=win
-    -- Real standalone wordmark art; no cropped logo scenery or subtitle.
-    icon(win,"HeaderWordmark.tga",15,14,281,68)
-    rule(win,14,90,624,.85)
-    label(win,"SMART LEVELING + GOLD",309,26,233,21,14,C.gold)
-    label(win,"Questing  /  Gold  /  Progress",309,51,235,20,11,C.muted)
-    button(win,"GUIDE",551,12,57,25,function()
+    -- Compact desktop-style command center: navigation is an actual sidebar;
+    -- the 652px content canvas is unchanged, preserving existing functional tabs.
+    icon(win,"HeaderWordmark.tga",20,14,257,61)
+    label(win,"LEVELING  /  PROFESSIONS  /  GOLD",299,25,420,20,12,C.gold)
+    label(win,"Your next move, powered by live game information",299,49,420,18,11,C.muted)
+    button(win,"GUIDE",766,17,65,28,function()
         if not FF.guide:IsShown() then FF:ToggleGuide() end
     end)
-    button(win,"X",614,12,23,25,function() FF:Toggle() end)
+    button(win,"X",837,17,24,28,function() FF:Toggle() end)
+    rule(win,13,91,W-26,.58)
+
+    local info=panel(win,195,108,664,72)
+    -- Show the character context adjacent to each view rather than wasting a
+    -- whole toolbar row on a second set of text-only controls.
+    self.status=label(info,"",12,13,464,23,14,C.white)
+    self.xpText=label(info,"",486,14,163,20,11,C.muted,"RIGHT")
+    self.xp=meter(info,12,47,638,10)
+
+    local side=panel(win,13,108,169,588)
+    label(side,"YOUR WORKSPACE",14,14,140,20,11,C.gold)
+    rule(side,12,37,145,.23)
     self.tabButtons={}
     for i,name in ipairs(TAB_NAMES) do
-        local b=button(win,TAB_LABELS[i],14+(i-1)*105,106,99,30,function() FF:ShowTab(name) end)
-        icon(b,"Tab"..({"Today","Leveling","Gold","Skills","Character","Settings"})[i]..".tga",6,5,20,20)
+        local b=button(side,TAB_LABELS[i],9,51+(i-1)*70,150,57,function() FF:ShowTab(name) end)
+        icon(b,"Tab"..({"Today","Leveling","Gold","Skills","Character","Settings"})[i]..".tga",11,15,27,27)
         b.text:ClearAllPoints()
-        b.text:SetPoint("TOPLEFT",b,"TOPLEFT",24,-8)
-        b.text:SetSize(73,16)
-        b.text:SetJustifyH("CENTER")
+        b.text:SetPoint("TOPLEFT",b,"TOPLEFT",42,-19)
+        b.text:SetSize(104,19)
+        b.text:SetJustifyH("LEFT")
         self.tabButtons[name]=b
     end
-    self.status=label(win,"",16,147,470,20,13,C.white)
-    self.xpText=label(win,"",473,148,165,20,11,C.muted,"RIGHT")
-    self.xp=meter(win,15,172,623,9)
+    rule(side,12,491,145,.23)
+    label(side,"LIVE ASSISTANT",14,503,140,17,10,C.gold)
+    label(side,"Quest • Craft • Gather",14,523,142,34,11,C.muted)
+
     self.pages={};self.views={}
     for _,tab in ipairs(TAB_NAMES) do
-        local p=CreateFrame("Frame",nil,win)
-        p:SetPoint("TOPLEFT",win,"TOPLEFT",0,-191);p:SetSize(W,506)
-        self.pages[tab]=p
+        local page=CreateFrame("Frame",nil,win)
+        page:SetPoint("TOPLEFT",win,"TOPLEFT",195,-189)
+        page:SetSize(652,506)
+        self.pages[tab]=page
     end
     self.views.today=self:MakeToday(self.pages.today)
     self.views.leveling=self:MakeLeveling(self.pages.leveling)
@@ -643,14 +661,16 @@ function FF:CreateUI()
     self.views.skills=self:MakeSkills(self.pages.skills)
     self.views.character=self:MakeCharacter(self.pages.character)
     self.views.settings=self:MakeSettings(self.pages.settings)
-    rule(win,14,695,624,.60)
-    label(win,"AUTO PLAN   /   YOU PLAY, WE GUIDE   /   /flow help",16,701,624,18,10,C.muted)
+    rule(win,13,712,W-26,.40)
+    label(win,"FOREVERFLOW   •   YOU PLAY, WE GUIDE",19,718,478,16,10,C.muted)
+    label(win,"/flow   •   WoW Forever",647,718,207,16,10,C.muted,"RIGHT")
     self:CreateGuide()
     self:CreateMinimapButton()
     self:ShowTab(self.pages[self.char.activeTab] and self.char.activeTab or "today")
     win:SetShown(self.char.visible)
     self:Refresh()
 end
+
 function FF:ShowTab(name)
     if not self.pages or not self.pages[name] then return end
     self.char.activeTab=name
@@ -867,9 +887,9 @@ function FF:UpdateUI()
     local pages=math.max(1,math.ceil((data and #data.recipes or 0)/5))
     page=math.min(page,pages)
     if data then
-        v.recStatus:SetText(shorten(data.name,30).."  |  "..#data.recipes.." known recipes observed  |  Open the profession window to refresh")
+        v.recStatus:SetText(shorten(data.name,29).."  /  "..#data.recipes.." observed recipes  /  "..tostring(data.source).." API")
     else
-        v.recStatus:SetText(self.recipeFlowStatus or "Open a crafting profession window, then press Refresh Recipes.")
+        v.recStatus:SetText(self.recipeFlowStatus or "Open your profession window, select a recipe, then press Refresh Recipes.")
     end
     for i,b in ipairs(v.recRows) do
         local at=(page-1)*5+i
@@ -917,7 +937,7 @@ function FF:UpdateUI()
         else
             v.recStep:SetText("Materials ready for one craft, based on the last profession scan. Use the game's profession window to craft.")
         end
-    else v.recStep:SetText("Open Alchemy, Cooking, or another crafting skill. ForeverFlow reads your actual recipe list.") end
+    else v.recStep:SetText("NO LIVE RECIPES YET  |  Keep the game profession window open, select a recipe, and press REFRESH RECIPES. Not all Forever client builds expose recipe APIs.") end
 
     v=self.views.character
     v.name:SetText(s.className.."  |  Level "..s.level)
