@@ -149,3 +149,5 @@ BETA 5 PREMIUM WORKBENCH TEST
 - Switch to Today, Leveling, Gold, Character and Settings; verify right-side contextual panel and tab switching.
 - Verify compact Live Guide and automatic quest turn-in selection are preserved.
 - Non-automated crafting only. Do not publish until tested on the WoW Forever client.
+
+Beta 7 regression: legacy Chrome and skills container must stay hidden, premium header/navigation and premium Skills workbench visible; test Today, Leveling, Gold and Skills; verify no duplicated controls on any tab.

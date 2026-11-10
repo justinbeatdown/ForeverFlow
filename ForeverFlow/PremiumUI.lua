@@ -48,13 +48,13 @@ local function button(parent,name,x,y,w,h,onClick)
  b:SetPoint('TOPLEFT',parent,'TOPLEFT',x,-y);b:SetSize(w,h)
  b:SetBackdrop({bgFile=FF.media..'ButtonBG.tga',edgeFile='Interface\\Buttons\\WHITE8X8',edgeSize=1,
   insets={left=1,right=1,top=1,bottom=1}})
- b:SetBackdropColor(.9,.9,.9,1);b:SetBackdropBorderColor(.35,.29,.20,1)
+ b:SetBackdropColor(.9,.9,.9,1);b:SetBackdropBorderColor(.32,.28,.23,1)
  b.caption=label(b,name,7,1,w-14,h-2,11,TEXT,'CENTER');b.text=b.caption
  b:SetScript('OnClick',onClick or function() end)
  b:SetScript('OnEnter',function(self)self:SetBackdropBorderColor(.99,.75,.3,1)end)
  b:SetScript('OnLeave',function(self)
   if self.ffOn then self:SetBackdropBorderColor(1,.72,.22,1)
-  else self:SetBackdropBorderColor(.35,.29,.2,1) end
+  else self:SetBackdropBorderColor(.32,.28,.23,1) end
  end)
  return b
 end
@@ -248,7 +248,15 @@ function FF:MakePremiumWorkbench(page)
 end
 
 function FF:MakeSkills(page)
- local v=legacySkills(self,page)
+ -- Legacy UI.lua still needs its skill controls for its data bindings. Build
+ -- them in an invisible sibling container rather than under the visible page;
+ -- the premium studio is the ONE interactive Skills UI.
+ local hidden=CreateFrame('Frame',nil,page)
+ hidden:SetPoint('TOPLEFT',page,'TOPLEFT',0,0)
+ hidden:SetSize(652,506)
+ local v=legacySkills(self,hidden)
+ hidden:Hide()
+ v.legacyContainer=hidden
  v.premium=self:MakePremiumWorkbench(page)
  return v
 end
@@ -256,15 +264,18 @@ end
 function FF:CreateUI()
  legacyCreate(self)
  local win=self.window
+ -- Never overlay the original UI shell. Its status fields and event wiring
+ -- stay alive for compatibility but its artwork, nav and buttons are hidden.
+ if self.legacyChrome then self.legacyChrome:Hide() end
  win:SetSize(1160,767)
  -- Cover the old header with real approved brand assets, not generated art.
  local header=surface(win,14,11,1132,86,.58,'WindowBG.tga')
  header:SetFrameLevel(win:GetFrameLevel()+16)
- art(header,11,11,62,FF.media..'MinimapIconRound.tga')
+ art(header,11,13,57,FF.media..'MinimapIconRound.tga')
  local wordmark=header:CreateTexture(nil,'ARTWORK')
  wordmark:SetTexture(FF.media..'HeaderWordmark.tga')
- wordmark:SetPoint('TOPLEFT',header,'TOPLEFT',74,-9);wordmark:SetSize(229,57)
- label(header,'SMART LEVELING + GOLD',81,59,238,18,10,GOLD)
+ wordmark:SetPoint('TOPLEFT',header,'TOPLEFT',76,-12);wordmark:SetSize(229,49)
+ label(header,'SMART LEVELING + GOLD',81,57,238,18,10,GOLD)
  self.premiumTabs={}
  local nav={{'today','TODAY'},{'leveling','LEVELING'},{'gold','GOLD'},{'skills','SKILLS'},{'character','CHARACTER'},{'settings','SETTINGS'}}
  for i,entry in ipairs(nav) do
@@ -273,9 +284,7 @@ function FF:CreateUI()
   self.tabButtons[entry[1]]=b
  end
  self.premiumClose=button(header,'X',1106,4,22,22,function()FF:Toggle()end)
- -- Hide only superseded navigation/status, never the actual content/guide.
- local oldNav=self.pages and self.pages.today and self.pages.today:GetParent()
- -- Original sidebar and header are covered by a larger shared workspace.
+ -- Single premium shell; legacy navigation is hidden, not painted over.
  self.premiumBase=surface(win,14,104,1132,623,.47,'WindowBG.tga')
  self.premiumBase:SetFrameLevel(win:GetFrameLevel()+2)
  self.premiumBottom=surface(win,14,732,1132,23,.24,'ButtonBG.tga')
@@ -313,6 +322,7 @@ function FF:CreateUI()
   button(rail,'OPEN PROFESSION FLOW',15,435,409,37,function()FF:ShowTab('skills')end)
   self.premiumContexts[name]={a=a,b=b,c=c}
  end
+ if self.legacyChrome then self.legacyChrome:Hide() end
  self:ShowTab(self.char.activeTab or 'today')
 end
 

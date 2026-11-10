@@ -172,3 +172,5 @@ ForeverFlow 0.5.5 Beta 3 - Discover Quests (test build)
 - Skills entrance flows straight to the real recipe workbench; updated titles and empty-state diagnostic.
 - Uses original in-game textures and the approved minimap icon. No screenshot/mockup is bundled as addon UI.
 - No public CurseForge upload.
+
+0.5.6 Beta 7 — Remove duplicated UI shell; legacy header/sidebar/status hidden, legacy Skills controls isolated. Active profession studio uses approved header/nav, recipe table, reagents and flow; no new synthetic data.

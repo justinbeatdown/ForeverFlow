@@ -613,25 +613,31 @@ function FF:CreateUI()
     win:SetScript("OnDragStart",function(self) if not FF.char.locked then self:StartMoving() end end)
     win:SetScript("OnDragStop",function(self) self:StopMovingOrSizing();FF:SavePosition(self,"main") end)
     self.window=win
+    -- Keep the legacy controls in one separately hideable container.  The
+    -- premium renderer replaces this chrome; it MUST NOT sit over it.
+    local chrome=CreateFrame("Frame",nil,win)
+    chrome:SetPoint("TOPLEFT",win,"TOPLEFT",0,0)
+    chrome:SetSize(W,H)
+    self.legacyChrome=chrome
     -- Compact desktop-style command center: navigation is an actual sidebar;
     -- the 652px content canvas is unchanged, preserving existing functional tabs.
-    icon(win,"HeaderWordmark.tga",20,14,257,61)
-    label(win,"LEVELING  /  PROFESSIONS  /  GOLD",299,25,420,20,12,C.gold)
-    label(win,"Your next move, powered by live game information",299,49,420,18,11,C.muted)
-    button(win,"GUIDE",766,17,65,28,function()
+    icon(chrome,"HeaderWordmark.tga",20,14,257,61)
+    label(chrome,"LEVELING  /  PROFESSIONS  /  GOLD",299,25,420,20,12,C.gold)
+    label(chrome,"Your next move, powered by live game information",299,49,420,18,11,C.muted)
+    button(chrome,"GUIDE",766,17,65,28,function()
         if not FF.guide:IsShown() then FF:ToggleGuide() end
     end)
-    button(win,"X",837,17,24,28,function() FF:Toggle() end)
-    rule(win,13,91,W-26,.58)
+    button(chrome,"X",837,17,24,28,function() FF:Toggle() end)
+    rule(chrome,13,91,W-26,.58)
 
-    local info=panel(win,195,108,664,72)
+    local info=panel(chrome,195,108,664,72)
     -- Show the character context adjacent to each view rather than wasting a
     -- whole toolbar row on a second set of text-only controls.
     self.status=label(info,"",12,13,464,23,14,C.white)
     self.xpText=label(info,"",486,14,163,20,11,C.muted,"RIGHT")
     self.xp=meter(info,12,47,638,10)
 
-    local side=panel(win,13,108,169,588)
+    local side=panel(chrome,13,108,169,588)
     label(side,"YOUR WORKSPACE",14,14,140,20,11,C.gold)
     rule(side,12,37,145,.23)
     self.tabButtons={}
@@ -661,9 +667,9 @@ function FF:CreateUI()
     self.views.skills=self:MakeSkills(self.pages.skills)
     self.views.character=self:MakeCharacter(self.pages.character)
     self.views.settings=self:MakeSettings(self.pages.settings)
-    rule(win,13,712,W-26,.40)
-    label(win,"FOREVERFLOW   •   YOU PLAY, WE GUIDE",19,718,478,16,10,C.muted)
-    label(win,"/flow   •   WoW Forever",647,718,207,16,10,C.muted,"RIGHT")
+    rule(chrome,13,712,W-26,.40)
+    label(chrome,"FOREVERFLOW   •   YOU PLAY, WE GUIDE",19,718,478,16,10,C.muted)
+    label(chrome,"/flow   •   WoW Forever",647,718,207,16,10,C.muted,"RIGHT")
     self:CreateGuide()
     self:CreateMinimapButton()
     self:ShowTab(self.pages[self.char.activeTab] and self.char.activeTab or "today")
