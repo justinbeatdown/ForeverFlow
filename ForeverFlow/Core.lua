@@ -1,6 +1,6 @@
 -- ForeverFlow 0.5.6-beta1 / player-first HUD. UI and suggestions only: no movement, combat or selling automation.
 local addonName, FF = ...
-FF.version = "0.5.6-beta4"
+FF.version = "0.5.6-beta5"
 FF.addon = addonName or "ForeverFlow"
 FF.media = "Interface\\AddOns\\ForeverFlow\\Media\\"
 FF.colors = {
@@ -426,7 +426,8 @@ local optional={"PLAYER_LEVEL_UP","PLAYER_XP_UPDATE","QUEST_LOG_UPDATE","QUEST_A
  "QUEST_REMOVED","QUEST_TURNED_IN","BAG_UPDATE_DELAYED","PLAYER_MONEY",
  "UPDATE_INVENTORY_DURABILITY","PLAYER_EQUIPMENT_CHANGED","SKILL_LINES_CHANGED",
  "ZONE_CHANGED","ZONE_CHANGED_NEW_AREA","PLAYER_REGEN_ENABLED","SPELLS_CHANGED",
- "GOSSIP_SHOW","QUEST_GREETING","TRADE_SKILL_SHOW","TRADE_SKILL_UPDATE","TRADE_SKILL_LIST_UPDATE","NEW_RECIPE_LEARNED","CRAFT_SHOW","CRAFT_UPDATE"}
+ "GOSSIP_SHOW","QUEST_GREETING","TRADE_SKILL_SHOW","TRADE_SKILL_UPDATE","TRADE_SKILL_LIST_UPDATE","TRADE_SKILL_NAME_UPDATE",
+ "TRADE_SKILL_DETAILS_UPDATE","TRADE_SKILL_DATA_SOURCE_CHANGED","NEW_RECIPE_LEARNED","CRAFT_SHOW","CRAFT_UPDATE"}
 FF.skippedEvents={}
 for _,event in ipairs(optional) do
     if not pcall(events.RegisterEvent,events,event) then
@@ -454,8 +455,19 @@ events:SetScript("OnEvent",function(_,event,arg1)
     elseif event=="CRAFT_SHOW" or event=="CRAFT_UPDATE" then
         if FF.CaptureRecipeFlow then FF:CaptureRecipeFlow("craft") end
     end
-    if event=="TRADE_SKILL_LIST_UPDATE" or event=="NEW_RECIPE_LEARNED" then
+    if event=="TRADE_SKILL_LIST_UPDATE" or event=="TRADE_SKILL_NAME_UPDATE" or
+       event=="TRADE_SKILL_DETAILS_UPDATE" or event=="TRADE_SKILL_DATA_SOURCE_CHANGED" or
+       event=="NEW_RECIPE_LEARNED" then
         if FF.TryCaptureRecipes then FF:TryCaptureRecipes() end
+    end
+    if event=="TRADE_SKILL_SHOW" or event=="CRAFT_SHOW" then
+        -- The Blizzard pane commonly fires SHOW before recipes are populated.
+        -- A second scan runs after its list update without user interaction.
+        if C_Timer and C_Timer.After then
+            C_Timer.After(.45,function()
+                if FF.char and FF.TryCaptureRecipes then FF:TryCaptureRecipes() end
+            end)
+        end
     end
     if event=="GOSSIP_SHOW" or event=="QUEST_GREETING" then
         if FF.RememberNearbyQuests then FF:RememberNearbyQuests() end
@@ -478,9 +490,9 @@ end)
 events:SetScript("OnUpdate",function(_,delta)
     if not FF.window or not FF.guide then return end
     if not (FF.window:IsShown() or FF.guide:IsShown()) then return end
-    if FF.views and FF.views.skills and FF.views.skills.recipes and FF.views.skills.recipes:IsShown() then
+    if FF.views and FF.views.skills and FF.pages and FF.pages.skills and FF.pages.skills:IsShown() then
         FF.recipePollElapsed=(FF.recipePollElapsed or 0)+delta
-        if FF.recipePollElapsed>=4 and not (FF.recipeFlow and FF.recipeFlow.count>0) then
+        if FF.recipePollElapsed>=3 and not (FF.recipeFlow and FF.recipeFlow.count>0) then
             FF.recipePollElapsed=0
             if FF.TryCaptureRecipes then FF:TryCaptureRecipes() end
         end

@@ -54,3 +54,8 @@ retain the earlier client-observed discovery mode until their catalog expands.
 Data provenance and quality limitations: DATA_SOURCES.txt.
 
 New beta5: /flow route prints your current quest/action reasoning, /flow routepickups opens Discover Quests. Unverified pickup data is never shown as guaranteed.
+
+
+0.5.6 Beta 5: Premium WoW-native UI and profession workbench. New top tabs and wide information panels.
+Skills displays actual professions, known recipes, reagent quantities and game tooltips; recipe data requires a supported open game profession pane.
+This is a test build only; public CurseForge remains on v0.5.5.

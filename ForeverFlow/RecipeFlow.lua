@@ -13,42 +13,78 @@ local function linkID(link)
     return tonumber(link:match('item:(%d+)'))
 end
 local function modernCollect()
-    if not C_TradeSkillUI or type(C_TradeSkillUI.GetAllRecipeIDs)~='function' then return nil end
-    local ids=call(C_TradeSkillUI.GetAllRecipeIDs)
+    local api=C_TradeSkillUI
+    if not api or type(api.GetAllRecipeIDs)~='function' then return nil end
+    local ids=call(api.GetAllRecipeIDs)
     if type(ids)~='table' or #ids==0 then return nil end
-    local name=call(C_TradeSkillUI.GetTradeSkillLine)
-    if type(name)~='string' then name='Profession' end
+    local profession=call(api.GetBaseProfessionInfo)
+    local name=type(profession)=='table' and (profession.professionName or profession.name or profession.professionDisplayName)
+    if type(name)~='string' or name=='' then name=call(api.GetTradeSkillDisplayName) end
+    if type(name)~='string' or name=='' then name=call(api.GetTradeSkillLine) end
+    if type(name)~='string' or name=='' then name='Opened profession' end
     local recipes={}
     for _,id in ipairs(ids) do
         if #recipes>=700 then break end
-        local info=call(C_TradeSkillUI.GetRecipeInfo,id)
-        if type(info)=='table' and type(info.name)=='string' and not info.isHeader then
-            local schematic=call(C_TradeSkillUI.GetRecipeSchematic,id,false)
-            local items=type(schematic)=='table' and schematic.reagentSlotSchematics or {}
+        local info=call(api.GetRecipeInfo,id)
+        -- GetAllRecipeIDs may also contain UNLEARNED entries with the filters open.
+        if type(info)=='table' and type(info.name)=='string' and
+           info.learned~=false and not info.isHeader and not info.isDummyRecipe then
+            local schematic=call(api.GetRecipeSchematic,id,false)
+            local slots=type(schematic)=='table' and schematic.reagentSlotSchematics or nil
             local reagents={}
             local missingTotal=0
-            for _,slot in ipairs(items or {}) do
-                if #reagents>=16 then break end
-                local reagent=type(slot)=='table' and slot.reagents and slot.reagents[1]
-                if reagent then
-                    local itemID=tonumber(reagent.itemID)
-                    local need=tonumber(slot.quantityRequired or reagent.quantityRequired) or 0
-                    local owned=itemID and tonumber(call(GetItemCount,itemID)) or 0
-                    owned=owned or 0
-                    local label=itemID and call(GetItemInfo,itemID) or ('Item '..tostring(itemID or '?'))
-                    local link=itemID and select(2,call(GetItemInfo,itemID)) or nil
-                    local texture=itemID and call(GetItemIcon,itemID) or nil
-                    local missing=math.max(0,need-owned)
-                    missingTotal=missingTotal+missing
-                    reagents[#reagents+1]={name=label,need=need,owned=owned,missing=missing,link=link,id=itemID,texture=texture}
+            local function addReagent(itemID,need,owned,texture,label,link)
+                if #reagents>=16 then return end
+                itemID=tonumber(itemID)
+                need=math.max(0,tonumber(need) or 0)
+                if owned==nil and itemID then owned=call(GetItemCount,itemID) end
+                owned=math.max(0,tonumber(owned) or 0)
+                local itemName,itemLink
+                if itemID then itemName,itemLink=call(GetItemInfo,itemID) end
+                label=label or itemName or (itemID and ('Item #'..itemID)) or 'Unknown reagent'
+                link=link or itemLink
+                texture=texture or (itemID and call(GetItemIcon,itemID))
+                local missing=math.max(0,need-owned)
+                missingTotal=missingTotal+missing
+                reagents[#reagents+1]={name=label,need=need,owned=owned,missing=missing,
+                    link=link,id=itemID,texture=texture}
+            end
+            if type(slots)=='table' then
+                for _,slot in ipairs(slots) do
+                    if #reagents>=16 then break end
+                    if type(slot)=='table' and type(slot.reagents)=='table' and #slot.reagents>0 then
+                        local reagent=slot.reagents[1]
+                        if type(reagent)=='table' then
+                            addReagent(reagent.itemID,slot.quantityRequired or reagent.quantityRequired,
+                                nil,reagent.icon or reagent.iconID,reagent.name,reagent.itemLink)
+                        end
+                    end
+                end
+            end
+            -- Forever/Classic-modern can expose reagent methods instead of
+            -- schematic slots. This fallback does not invent reagent quantities.
+            if #reagents==0 and type(api.GetRecipeNumReagents)=='function' then
+                local n=tonumber(call(api.GetRecipeNumReagents,id)) or 0
+                for i=1,math.min(n,16) do
+                    local r=call(api.GetRecipeReagentInfo,id,i)
+                    if type(r)=='table' then
+                        addReagent(r.itemID,r.quantityRequired or r.quantity,r.numAvailable,
+                            r.icon or r.iconID,r.name,r.itemLink)
+                    end
                 end
             end
             local outputID=info.itemID or (schematic and schematic.outputItemID)
-            local link=outputID and select(2,call(GetItemInfo,outputID)) or nil
-            recipes[#recipes+1]={name=info.name,index=id,source='modern',link=link,id=outputID,
-               texture=info.icon or info.iconID or (outputID and call(GetItemIcon,outputID)),
-               difficulty=info.difficulty or 'unknown',available=tonumber(info.numAvailable) or 0,
-               reagents=reagents,missingTotal=missingTotal}
+            local outputLink
+            if outputID then _,outputLink=call(GetItemInfo,outputID) end
+            local available=tonumber(info.numAvailable) or tonumber(call(api.GetRecipeNumAvailable,id)) or 0
+            local diff=info.relativeDifficulty
+            local diffName=({[0]='optimal',[1]='medium',[2]='easy',[3]='trivial'})[diff] or
+                (info.canSkillUp==true and 'skill-up' or 'unknown')
+            recipes[#recipes+1]={name=info.name,index=id,source='modern',link=outputLink or info.hyperlink,id=outputID,
+                texture=info.icon or info.iconID or (schematic and schematic.icon) or
+                    (outputID and call(GetItemIcon,outputID)),
+                difficulty=diffName,canSkillUp=info.canSkillUp,available=available,
+                reagents=reagents,missingTotal=missingTotal}
         end
     end
     if #recipes==0 then return nil end
@@ -100,7 +136,9 @@ function FF:CaptureRecipeFlow(source)
         local tradeN=tonumber(call(GetNumTradeSkills)) or 0
         local craftN=tonumber(call(GetNumCrafts)) or 0
         local modern=C_TradeSkillUI and type(C_TradeSkillUI.GetAllRecipeIDs)=='function'
-        self.recipeFlowStatus='No client recipes yet (trade '..tradeN..', craft '..craftN..', modern '..(modern and 'yes' or 'no')..'). Keep the profession list open and refresh.'
+        local ids=modern and call(C_TradeSkillUI.GetAllRecipeIDs)
+        local modernN=type(ids)=='table' and #ids or 0
+        self.recipeFlowStatus='Client recipes: trade '..tradeN..', craft '..craftN..', modern '..modernN..'. Open the profession recipe list and Refresh.'
         if self.Refresh then self:Refresh() end
         return false
     end
@@ -112,6 +150,7 @@ function FF:CaptureRecipeFlow(source)
         self.char.recipeFlowPage=1
         self.char.recipeFlowSelected=1
         self.char.recipeReagentPage=0
+        self.char.premiumRecipePage=1
     end
     if self.Refresh then self:Refresh() end
     return true
@@ -121,11 +160,12 @@ function FF:TryCaptureRecipes()
     -- game events, the Refresh control, and while the workbench is visible.
     local trade=(TradeSkillFrame and TradeSkillFrame.IsShown and TradeSkillFrame:IsShown())
     local craft=(CraftFrame and CraftFrame.IsShown and CraftFrame:IsShown())
+    if C_TradeSkillUI and type(C_TradeSkillUI.GetAllRecipeIDs)=='function' then
+        local ids=call(C_TradeSkillUI.GetAllRecipeIDs)
+        if type(ids)=='table' and #ids>0 then return self:CaptureRecipeFlow('modern') end
+    end
     if trade then return self:CaptureRecipeFlow('trade') end
     if craft then return self:CaptureRecipeFlow('craft') end
-    if C_TradeSkillUI and type(C_TradeSkillUI.GetAllRecipeIDs)=='function' then
-        return self:CaptureRecipeFlow('modern')
-    end
     if type(GetNumTradeSkills)=='function' and (tonumber(call(GetNumTradeSkills)) or 0)>0 then
         return self:CaptureRecipeFlow('trade')
     end

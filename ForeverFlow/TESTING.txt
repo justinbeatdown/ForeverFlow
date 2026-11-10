@@ -126,3 +126,14 @@ Beta 5 Route Intelligence in-game test:
 - Completed quests should suggest turn-in; 0-2 bag slots should take priority; very low durability prompts repair.
 - Browse Discover quests; any Barrens pickup must be clearly labelled as a travel option and unverified.
 - Click WHY? in Today; verify /flow route and /flow routepickups. Check every tab for clipping and errors.
+
+
+BETA 5 PREMIUM WORKBENCH TEST
+- Open /flow. New top navigation should replace the old left sidebar; the character strip should appear below.
+- Open Skills: the profession list, up to 7 observed recipe rows, and detailed reagents should appear.
+- Open the actual Alchemy profession window while Skills is visible.
+- Inspect recipe rows, item textures and hover tooltips; click a recipe and verify quantities against the game pane.
+- If no recipes appear, record the diagnostic message at top and try REFRESH after opening the profession list.
+- Switch to Today, Leveling, Gold, Character and Settings; verify right-side contextual panel and tab switching.
+- Verify compact Live Guide and automatic quest turn-in selection are preserved.
+- Non-automated crafting only. Do not publish until tested on the WoW Forever client.
