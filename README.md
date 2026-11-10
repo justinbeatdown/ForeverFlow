@@ -11,7 +11,7 @@
 *Built for World of Warcraft: Forever*
 
 [![CurseForge release](https://img.shields.io/badge/CurseForge-v0.5.5%20Live-DDA544?style=for-the-badge&labelColor=151821)](https://www.curseforge.com/wow/addons/foreverflow)
-![Development](https://img.shields.io/badge/Development-v0.5.6%20Beta%203.1-4B92CB?style=for-the-badge&labelColor=151821)
+![Development](https://img.shields.io/badge/Development-v0.5.6%20Beta%204-4B92CB?style=for-the-badge&labelColor=151821)
 ![WoW Forever](https://img.shields.io/badge/WoW-Forever%20%7C%2016001-DAA520?style=for-the-badge&labelColor=151821)
 ![Manual play](https://img.shields.io/badge/Gameplay-100%25%20Manual-39A878?style=for-the-badge&labelColor=151821)
 
@@ -34,7 +34,7 @@ It helps with decisions; **it never controls your character**. Moving, fighting,
 | Channel | Version | Status |
 |---|---|---|
 | **Public — CurseForge** | **v0.5.5** | Released; install and update through CurseForge |
-| **Development — GitHub `main`** | **v0.5.6 Beta 3.1** | Experimental: world-data expansion, profession coach, live Recipe Flow and minimap icon refinements; **not released to CurseForge** |
+| **Development — GitHub `main`** | **v0.5.6 Beta 4** | Experimental: world-data expansion, profession coach, live Recipe Flow and minimap icon refinements; **not released to CurseForge** |
 
 **Do not confuse a successful GitHub Actions package build with a public release.** Development pushes run checks and produce test artifacts. Publishing to CurseForge is a separate controlled step.
 
@@ -92,7 +92,7 @@ It helps with decisions; **it never controls your character**. Moving, fighting,
 
 </div>
 
-## 🔬 What's being developed — v0.5.6 Beta 3.1
+## 🔬 What's being developed — v0.5.6 Beta 4
 
 The **0.5.6 beta is not public**. It expands the foundations of ForeverFlow, especially beyond the original two-zone discovery catalog.
 
@@ -100,7 +100,7 @@ The **0.5.6 beta is not public**. It expands the foundations of ForeverFlow, esp
 - **Race and class awareness:** Candidate filtering checks documented race/class masks, level requirements, completed and accepted quests, prerequisites, mutually exclusive chains and other restrictions. Some restrictions cannot be verified from the current client and are handled conservatively.
 - **Profession leveling coach:** Skill/rank-aware advice for professions reported by the character, including gathering, crafting and secondary professions. This is **not yet a verified recipe-by-recipe 1–300 guide** and does not invent material prices.
 - **Discovery stability:** Candidate caching and filtering improvements for quest updates, saves and skips.
-- **Recipe-load reliability (Beta 3.1):** Delayed profession scan, periodic refresh while awaiting first data, support for modern TradeSkill API when present, and clear empty-state instructions. In-game validation still required.\n- **Native Profession Workbench (Beta 3):** Displays observed known recipes in a two-column layout with actual game item icons, reagent quantities, item-link tooltips and live material shortages. No fictional recipe prices or crafting automation.\n- **Live Recipe Flow:** Open a crafting profession window and use **Skills → Leveling Plan → View Live Recipes + Reagents** to browse the actual recipes your character knows, inspect reagent quantities, missing materials and native item tooltips when provided by the client. The Gold tab can display missing reagents for a selected observed recipe. No invented prices or one-click crafting.\n- **Minimap icon refresh:** A cleaner circular icon designed to match classic-style minimap buttons. This visual revision is awaiting in-game verification.
+- **Command Center redesign (Beta 4):** New wide dashboard, left-rail navigation, compact character/XP header, side-by-side Today and Gold cards, a rebuilt Skills entry screen, and clearer recipe loading diagnostics. This is real Lua UI code; the refreshed layout has been checked in a mocked WoW UI but still needs in-game visual and interaction testing.\n- **Recipe-load reliability (Beta 3.1):** Delayed profession scan, periodic refresh while awaiting first data, support for modern TradeSkill API when present, and clear empty-state instructions. In-game validation still required.\n- **Native Profession Workbench (Beta 3):** Displays observed known recipes in a two-column layout with actual game item icons, reagent quantities, item-link tooltips and live material shortages. No fictional recipe prices or crafting automation.\n- **Live Recipe Flow:** Open a crafting profession window and use **Skills → Leveling Plan → View Live Recipes + Reagents** to browse the actual recipes your character knows, inspect reagent quantities, missing materials and native item tooltips when provided by the client. The Gold tab can display missing reagents for a selected observed recipe. No invented prices or one-click crafting.\n- **Minimap icon refresh:** A cleaner circular icon designed to match classic-style minimap buttons. This visual revision is awaiting in-game verification.
 
 Read [**World coverage and known limitations**](ForeverFlow/WORLD_COVERAGE.md) for the precise status and [**third-party quest-data attribution**](ForeverFlow/THIRD_PARTY_QUEST_LICENSE.txt) for licensing.
 
