@@ -333,57 +333,101 @@ function FF:MakeSkills(page)
  return v
 end
 
+-- Beta 10: a single, native frame tree. No legacy window or chrome is created.
+-- The invisible compatibility views provide data bindings only; no hidden
+-- graphical layer can bleed through the premium layout.
 function FF:CreateUI()
- legacyCreate(self)
- local win=self.window
- -- Never overlay the original UI shell. Its status fields and event wiring
- -- stay alive for compatibility but its artwork, nav and buttons are hidden.
- if self.legacyChrome then self.legacyChrome:Hide() end
+ if self.window then return end
+ local win=CreateFrame('Frame',nil,UIParent,'BackdropTemplate')
  win:SetSize(1160,767)
- -- Cover the old header with real approved brand assets, not generated art.
- local header=surface(win,14,11,1132,86,.58,'WindowBG.tga')
- header:SetFrameLevel(win:GetFrameLevel()+16)
- art(header,11,13,57,FF.media..'MinimapIconRound.tga')
+ win:SetPoint('CENTER',UIParent,'CENTER',self.char.posX or 0,self.char.posY or 0)
+ win:SetFrameStrata('DIALOG')
+ win:SetClampedToScreen(true)
+ win:SetMovable(true)
+ win:EnableMouse(true)
+ win:RegisterForDrag('LeftButton')
+ win:SetBackdrop({bgFile=FF.media..'WindowBG.tga',
+  edgeFile='Interface\\Buttons\\WHITE8X8',edgeSize=2,
+  insets={left=2,right=2,top=2,bottom=2}})
+ win:SetBackdropColor(.94,.94,.94,1)
+ win:SetBackdropBorderColor(.76,.49,.17,1)
+ win:SetScript('OnDragStart',function(self)
+  if not FF.char.locked then self:StartMoving() end
+ end)
+ win:SetScript('OnDragStop',function(self)
+  self:StopMovingOrSizing()
+  FF:SavePosition(self,'main')
+ end)
+ self.window=win
+ self.legacyChrome=nil
+ self.premiumBase=nil
+ self.premiumContexts=nil
+
+ -- Legacy view references live in an invisible, offscreen data-only parent.
+ -- This is not a second window and cannot draw over the game UI.
+ local compatibility=CreateFrame('Frame',nil,win)
+ compatibility:SetSize(652,506)
+ compatibility:SetPoint('TOPLEFT',win,'TOPLEFT',0,0)
+ compatibility:Hide()
+ self.compatibility=compatibility
+ self.status=label(compatibility,'',0,0,500,20,12,TEXT)
+ self.xpText=label(compatibility,'',0,20,200,20,11,MUTED)
+ self.xp=function()end
+
+ -- The approved art direction has ONE header, ONE content surface, ONE footer.
+ local header=surface(win,9,9,1142,75,.57,'WindowBG.tga')
+ header:SetFrameLevel(win:GetFrameLevel()+2)
+ art(header,12,11,50,FF.media..'MinimapIconRound.tga')
  local wordmark=header:CreateTexture(nil,'ARTWORK')
  wordmark:SetTexture(FF.media..'HeaderWordmark.tga')
- wordmark:SetPoint('TOPLEFT',header,'TOPLEFT',76,-12);wordmark:SetSize(229,49)
- label(header,'SMART LEVELING + GOLD',81,57,238,18,10,GOLD)
+ wordmark:SetPoint('TOPLEFT',header,'TOPLEFT',72,-8)
+ wordmark:SetSize(233,49)
+ label(header,'SMART LEVELING + GOLD',76,53,235,16,10,GOLD)
  self.premiumTabs={}
- local nav={{'today','TODAY'},{'leveling','LEVELING'},{'gold','GOLD'},{'skills','SKILLS'},{'character','CHARACTER'},{'settings','SETTINGS'}}
+ self.tabButtons={}
+ local nav={{'today','TODAY'},{'leveling','LEVELING'},
+            {'gold','GOLD'},{'skills','SKILLS'},
+            {'character','CHARACTER'},{'settings','SETTINGS'}}
  for i,entry in ipairs(nav) do
-  local b=button(header,entry[2],327+(i-1)*129,31,122,38,function()FF:ShowTab(entry[1])end)
+  local b=button(header,entry[2],329+(i-1)*127,24,119,36,
+   function() FF:ShowTab(entry[1]) end)
   self.premiumTabs[entry[1]]=b
   self.tabButtons[entry[1]]=b
  end
- self.premiumClose=button(header,'X',1106,4,22,22,function()FF:Toggle()end)
- -- Single premium shell; legacy navigation is hidden, not painted over.
- self.premiumBase=surface(win,14,104,1132,623,.47,'WindowBG.tga')
- self.premiumBase:SetFrameLevel(win:GetFrameLevel()+2)
- self.premiumBottom=surface(win,14,732,1132,23,.24,'ButtonBG.tga')
- self.premiumBottom:SetFrameLevel(win:GetFrameLevel()+17)
- label(self.premiumBottom,'FOREVERFLOW    •    YOU PLAY, WE GUIDE',12,1,510,21,10,MUTED)
- self.premiumVersion=label(self.premiumBottom,'WoW FOREVER  /  '..tostring(self.version or 'development'),835,1,281,21,10,MUTED,'RIGHT')
- -- Keep each game page above the background and place content below the header.
- for tab,page in pairs(self.pages) do
-  page:ClearAllPoints()
-  if tab=='skills' or tab=='today' then
-   page:SetPoint('TOPLEFT',win,'TOPLEFT',22,-111)
-   page:SetSize(1116,602)
-  else
-   page:SetPoint('TOPLEFT',win,'TOPLEFT',29,-169)
-   page:SetSize(1100,537)
-  end
-  page:SetFrameLevel(win:GetFrameLevel()+5)
+ self.premiumClose=button(header,'X',1110,7,23,23,
+  function()FF:Toggle()end)
+
+ self.pages={}
+ self.views={}
+ for _,tab in ipairs(nav) do
+  local name=tab[1]
+  local page=CreateFrame('Frame',nil,win)
+  page:SetPoint('TOPLEFT',win,'TOPLEFT',22,-96)
+  page:SetSize(1116,602)
+  self.pages[name]=page
  end
- -- A small live identity strip for pages other than Skills.
- self.premiumInfo=surface(win,22,114,1116,44,.27,'CardBG.tga')
- self.premiumInfo:SetFrameLevel(win:GetFrameLevel()+7)
- self.premiumCharacter=label(self.premiumInfo,'',13,5,835,32,13,TEXT)
- self.premiumXP=label(self.premiumInfo,'',870,5,230,32,12,GOLD,'RIGHT')
- -- Every tab owns a full-width premium page. No legacy right-hand overlays.
- self.premiumContexts={}
- if self.legacyChrome then self.legacyChrome:Hide() end
- self:ShowTab(self.char.activeTab or 'today')
+ -- Each Make* constructor builds exactly one visible premium page. Any older
+ -- controls needed by UpdateUI are parented to hidden compatibility children.
+ self.views.today=self:MakeToday(self.pages.today)
+ self.views.leveling=self:MakeLeveling(self.pages.leveling)
+ self.views.gold=self:MakeGold(self.pages.gold)
+ self.views.skills=self:MakeSkills(self.pages.skills)
+ self.views.character=self:MakeCharacter(self.pages.character)
+ self.views.settings=self:MakeSettings(self.pages.settings)
+
+ local bottom=surface(win,9,709,1142,43,.28,'WindowBG.tga')
+ bottom:SetFrameLevel(win:GetFrameLevel()+2)
+ label(bottom,'FOREVERFLOW   •   YOU PLAY, WE GUIDE',15,12,600,22,10,MUTED)
+ self.premiumVersion=label(bottom,
+  'WoW FOREVER  /  '..tostring(self.version or 'development'),
+  832,12,291,22,10,MUTED,'RIGHT')
+ -- Live guide and minimap remain independent game UI elements, not overlays
+ -- on the main workbench.
+ self:CreateGuide()
+ self:CreateMinimapButton()
+ self:ShowTab(self.pages[self.char.activeTab] and self.char.activeTab or 'today')
+ win:SetShown(self.char.visible==true)
+ self:Refresh()
 end
 
 function FF:ShowTab(name)
