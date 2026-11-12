@@ -17,6 +17,27 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Check approved release archive and restore its exact sources
+        if: github.ref == 'refs/heads/release'
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE="dist/ForeverFlow_v0.5.6_Release.zip"
+          echo "62abe9e8f49c54367405cbaffe3f67e72e596af3fa1bfd371d68a3e14ac2fa34  ${FILE}" | sha256sum -c -
+          python - <<'PY'
+          from zipfile import ZipFile
+          with ZipFile("dist/ForeverFlow_v0.5.6_Release.zip") as z:
+              assert z.testzip() is None
+              names=z.namelist()
+              assert "ForeverFlow/ForeverFlow.toc" in names
+              assert all(x.startswith("ForeverFlow/") and ".." not in x.split("/") for x in names)
+              toc=z.read("ForeverFlow/ForeverFlow.toc").decode("utf-8")
+              assert "## Version: 0.5.6" in toc
+              z.extractall(".release-staging")
+          PY
+          rm -rf ForeverFlow
+          mv .release-staging/ForeverFlow ForeverFlow
+
       # The tested icons are tracked in Git: never regenerate/recolor them
       # during release packaging, or the archive may differ from the approved RC2.
       - name: Validate addon layout and manifest
@@ -44,6 +65,7 @@ jobs:
           print("Validated ForeverFlow", version.group(1), "for interface 16001")
 
       - name: Build CurseForge-ready ZIP
+        if: github.ref != 'refs/heads/release'
         shell: python
         run: |
           from pathlib import Path
@@ -64,6 +86,13 @@ jobs:
               assert "ForeverFlow/ForeverFlow.toc" in archive.namelist()
           print(f"Created {out} ({out.stat().st_size:,} bytes)")
           Path("zip_filename.txt").write_text(out.name, encoding="utf-8")
+
+      - name: Select exact approved release ZIP
+        if: github.ref == 'refs/heads/release'
+        shell: bash
+        run: |
+          cp dist/ForeverFlow_v0.5.6_Release.zip ForeverFlow_v0.5.6_Release.zip
+          echo "ForeverFlow_v0.5.6_Release.zip" > zip_filename.txt
 
       - name: Upload installable ZIP
         uses: actions/upload-artifact@v4
