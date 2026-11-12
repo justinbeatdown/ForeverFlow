@@ -10,8 +10,8 @@
 
 *Built for World of Warcraft: Forever*
 
-[![CurseForge release](https://img.shields.io/badge/CurseForge-v0.5.5%20Live-DDA544?style=for-the-badge&labelColor=151821)](https://www.curseforge.com/wow/addons/foreverflow)
-![Approved candidate](https://img.shields.io/badge/v0.5.6-Test%2010%20Approved-4B92CB?style=for-the-badge&labelColor=151821)
+[![CurseForge release](https://img.shields.io/badge/CurseForge-v0.5.6%20Released-DDA544?style=for-the-badge&labelColor=151821)](https://www.curseforge.com/wow/addons/foreverflow)
+![Release](https://img.shields.io/badge/Release-v0.5.6-4B92CB?style=for-the-badge&labelColor=151821)
 ![WoW Forever](https://img.shields.io/badge/WoW-Forever%20%7C%2016001-DAA520?style=for-the-badge&labelColor=151821)
 ![Manual play](https://img.shields.io/badge/Gameplay-100%25%20Manual-39A878?style=for-the-badge&labelColor=151821)
 
@@ -33,16 +33,13 @@ It helps with decisions; **it never controls your character**. Moving, fighting,
 
 | Channel | Version | Status |
 |---|---|---|
-| **Public — CurseForge** | **v0.5.5** | Released; install and update through CurseForge |
-| **Approved candidate — Test 10** | **v0.5.6** | User-approved for release on November 12, 2026; packaged ZIP verified. **GitHub release branch and CurseForge publishing are pending exact artifact synchronization.** |
-| **Development — GitHub `main`** | **v0.5.6 Beta 9 source** | Repository's prior development state; **not the approved Test 10 code** |
+| **Public — CurseForge** | **v0.5.6** | Approved Test 10 package uploaded through GitHub Actions on November 12, 2026; CurseForge processing/visibility may take additional time |
+| **GitHub `release`** | **v0.5.6** | Exact approved install ZIP committed as `dist/ForeverFlow_v0.5.6_Release.zip`; SHA-256 verified |
+| **Development — GitHub `main`** | **v0.5.6 Beta 9 source** | Earlier development source; use the released install ZIP for v0.5.6 rather than downloading the repository source archive |
 
-**Do not confuse a successful GitHub Actions package build with a public release.** Development pushes run checks and produce test artifacts. Publishing to CurseForge is a separate controlled step.
+**Release workflow:** [Successful GitHub Actions publication](https://github.com/justinbeatdown/ForeverFlow/actions/runs/43281330238) · [Verified install ZIP](https://github.com/justinbeatdown/ForeverFlow/blob/release/dist/ForeverFlow_v0.5.6_Release.zip).
 
-
-> **Release status — November 12, 2026:** ForeverFlow v0.5.6 Test 10 has been approved for public release. Its installable archive (`ForeverFlow_v0.5.6_CurseForge_Release.zip`) has passed ZIP integrity and folder-layout checks (SHA-256 `62abe9e8f49c54367405cbaffe3f67e72e596af3fa1bfd371d68a3e14ac2fa34`). The GitHub `release` branch still points to 0.5.5; CurseForge publication will be triggered only after the approved source and media have been synchronized there. Until then, install the currently published v0.5.5 from CurseForge.
-
-## ✨ What you can do today — public v0.5.5
+## ✨ What you can do today — public v0.5.6
 
 | Feature | In-game behavior |
 |---|---|
@@ -57,7 +54,7 @@ It helps with decisions; **it never controls your character**. Moving, fighting,
 
 ## 📸 In-game screenshots
 
-**Real gameplay captures of ForeverFlow v0.5.5** — the bronze-and-gold interface, working Route Intelligence, quest discovery, and tracking tools.
+**Historical gameplay captures of ForeverFlow v0.5.5** — the bronze-and-gold interface, working Route Intelligence, quest discovery, and tracking tools.
 
 <div align="center">
 
