@@ -11,7 +11,7 @@
 *Built for World of Warcraft: Forever*
 
 [![CurseForge release](https://img.shields.io/badge/CurseForge-v0.5.5%20Live-DDA544?style=for-the-badge&labelColor=151821)](https://www.curseforge.com/wow/addons/foreverflow)
-![Development](https://img.shields.io/badge/Development-v0.5.6%20Beta%209-4B92CB?style=for-the-badge&labelColor=151821)
+![Approved candidate](https://img.shields.io/badge/v0.5.6-Test%2010%20Approved-4B92CB?style=for-the-badge&labelColor=151821)
 ![WoW Forever](https://img.shields.io/badge/WoW-Forever%20%7C%2016001-DAA520?style=for-the-badge&labelColor=151821)
 ![Manual play](https://img.shields.io/badge/Gameplay-100%25%20Manual-39A878?style=for-the-badge&labelColor=151821)
 
@@ -34,9 +34,13 @@ It helps with decisions; **it never controls your character**. Moving, fighting,
 | Channel | Version | Status |
 |---|---|---|
 | **Public — CurseForge** | **v0.5.5** | Released; install and update through CurseForge |
-| **Development — GitHub `main`** | **v0.5.6 Beta 9** | Experimental: world-data expansion, profession coach, live Recipe Flow and minimap icon refinements; **not released to CurseForge** |
+| **Approved candidate — Test 10** | **v0.5.6** | User-approved for release on November 12, 2026; packaged ZIP verified. **GitHub release branch and CurseForge publishing are pending exact artifact synchronization.** |
+| **Development — GitHub `main`** | **v0.5.6 Beta 9 source** | Repository's prior development state; **not the approved Test 10 code** |
 
 **Do not confuse a successful GitHub Actions package build with a public release.** Development pushes run checks and produce test artifacts. Publishing to CurseForge is a separate controlled step.
+
+
+> **Release status — November 12, 2026:** ForeverFlow v0.5.6 Test 10 has been approved for public release. Its installable archive (`ForeverFlow_v0.5.6_CurseForge_Release.zip`) has passed ZIP integrity and folder-layout checks (SHA-256 `62abe9e8f49c54367405cbaffe3f67e72e596af3fa1bfd371d68a3e14ac2fa34`). The GitHub `release` branch still points to 0.5.5; CurseForge publication will be triggered only after the approved source and media have been synchronized there. Until then, install the currently published v0.5.5 from CurseForge.
 
 ## ✨ What you can do today — public v0.5.5
 
